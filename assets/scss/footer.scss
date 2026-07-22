@@ -1,0 +1,54 @@
+/* footer */
+.style-watch {
+    .footer {
+        .footer-main {
+            background: var(--surface1);
+            color: var(--white);
+        }
+
+        .has-line-before {
+            &::before {
+                background-color: var(--white);
+            }
+        }
+
+        .input-block {
+            input {
+                background: rgba($color: #FFFFFF, $alpha: 0.2);
+            }
+        }
+
+        .text-black {
+            color: var(--white);
+        }
+
+        .text-secondary {
+            color: var(--white);
+        }
+
+        svg {
+            fill: var(--white);
+        }
+    }
+}
+
+/* Mobile footer gap fix */
+@media (max-width: 767.98px) {
+    .footer {
+        margin-bottom: 0 !important;
+        padding-bottom: 80px !important; /* Added space for bottom navigation */
+    }
+    
+    .footer-main {
+        padding-bottom: 0 !important;
+    }
+    
+    .footer-bottom {
+        padding-bottom: 20px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .content-footer {
+        padding-bottom: 1rem !important;
+    }
+}
