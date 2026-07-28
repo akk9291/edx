@@ -33,11 +33,20 @@
                 <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bearingImportModal">
                     <i class="bi bi-upload me-2"></i>Import bearings (CSV / Excel)
                 </button>
+                <button type="button" class="btn btn-danger d-none" id="deleteSelectedBtn">
+                    <i class="bi bi-trash me-2"></i>Delete Selected
+                </button>
                 <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>Add New Product
                 </a>
             </div>
         </div>
+
+        <form id="bulkDeleteForm" action="{{ route('admin.products.bulkDestroy') }}" method="POST" class="d-none">
+            @csrf
+            @method('DELETE')
+            <div id="bulkDeleteIdsContainer"></div>
+        </form>
 
         @if(session('import_errors'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -113,6 +122,9 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th style="width: 40px; padding-left: 20px;">
+                                    <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
+                                </th>
                                 <th>ID</th>
                                 <th>Image</th>
                                 <th>Name</th>
@@ -126,6 +138,9 @@
                             @forelse($products as $product)
                                 @php $imageUrl = $product->image_url; @endphp
                                 <tr>
+                                    <td style="padding-left: 20px;">
+                                        <input type="checkbox" class="form-check-input select-row" data-id="{{ $product->id }}">
+                                    </td>
                                     <td>{{ $product->id }}</td>
                                     <td>
                                         <img src="{{ $imageUrl }}" 
@@ -430,6 +445,64 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('bg-warning');
         });
     });
+
+    // Select All Checkbox
+    const selectAll = document.getElementById('selectAllCheckbox');
+    const rowCheckboxes = document.querySelectorAll('.select-row');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+
+    function updateDeleteSelectedButtonVisibility() {
+        if (!deleteSelectedBtn) return;
+        let checkedCount = 0;
+        rowCheckboxes.forEach(cb => {
+            if (cb.checked) checkedCount++;
+        });
+        if (checkedCount > 0) {
+            deleteSelectedBtn.classList.remove('d-none');
+            deleteSelectedBtn.innerHTML = `<i class="bi bi-trash me-2"></i>Delete Selected (${checkedCount})`;
+        } else {
+            deleteSelectedBtn.classList.add('d-none');
+        }
+    }
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            rowCheckboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+            });
+            updateDeleteSelectedButtonVisibility();
+        });
+    }
+
+    rowCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateDeleteSelectedButtonVisibility);
+    });
+
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener('click', function() {
+            const ids = [];
+            rowCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    ids.push(cb.getAttribute('data-id'));
+                }
+            });
+
+            if (ids.length === 0) return;
+
+            if (confirm(`Are you sure you want to delete ${ids.length} selected product(s)?`)) {
+                const container = document.getElementById('bulkDeleteIdsContainer');
+                container.innerHTML = '';
+                ids.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = id;
+                    container.appendChild(input);
+                });
+                document.getElementById('bulkDeleteForm').submit();
+            }
+        });
+    }
 });
 </script>
 @endsection

@@ -331,6 +331,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('products.bearing-export');
         Route::post('products/bulk-update', [ProductController::class, 'bulkUpdate'])
             ->name('products.bulkUpdate');
+        Route::delete('products/bulk-destroy', [ProductController::class, 'bulkDestroy'])
+            ->name('products.bulkDestroy');
         Route::resource('products', ProductController::class);
         
         // Pillow Blocks Module
@@ -342,6 +344,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('pillow-block.export');
         Route::post('pillow-block/bulk-update', [PillowBlockController::class, 'bulkUpdate'])
             ->name('pillow-block.bulkUpdate');
+        Route::delete('pillow-block/bulk-destroy', [PillowBlockController::class, 'bulkDestroy'])
+            ->name('pillow-block.bulkDestroy');
         Route::resource('pillow-block', PillowBlockController::class);
 
         Route::resource('categories', CategoryController::class);

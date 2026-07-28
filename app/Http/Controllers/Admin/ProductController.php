@@ -667,4 +667,49 @@ class ProductController extends Controller
             'message' => "Successfully updated {$updated} product(s)." . ($errors ? ' Some errors occurred.' : ''),
         ]);
     }
+
+    /**
+     * Bulk delete products.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:products,id',
+        ]);
+
+        $ids = $request->input('ids');
+        $deleted = 0;
+
+        foreach ($ids as $id) {
+            $product = Product::find($id);
+            if ($product) {
+                // Delete image if exists
+                if ($product->image) {
+                    Storage::disk('public')->delete($product->image);
+                }
+
+                // Delete gallery images if exist
+                if (is_array($product->images)) {
+                    foreach ($product->images as $img) {
+                        Storage::disk('public')->delete($img);
+                    }
+                }
+
+                // Delete video if exists
+                if ($product->video) {
+                    Storage::disk('public')->delete($product->video);
+                }
+
+                // Remove from cart
+                Cart::where('product_id', $product->id)->delete();
+
+                $product->delete();
+                $deleted++;
+            }
+        }
+
+        return redirect()->route('admin.products.index')
+            ->with('success', "Successfully deleted {$deleted} product(s).");
+    }
 }

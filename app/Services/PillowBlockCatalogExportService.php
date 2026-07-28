@@ -10,82 +10,147 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PillowBlockCatalogExportService
 {
-    public const HEADER_ROW_1 = [
-        '',
-        '',
-        // Optional fields headers
-        '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''
-    ];
-
-    public const HEADER_ROW_2 = [
-        'Bearing number',
-        'Specifications',
-        // Optional fields
-        'name',
-        'sku',
-        'category_id',
-        'brand',
-        'short_description',
-        'description',
-        'price',
-        'sale_price',
-        'image_url',
-        'video',
-        'pdf_catalogue',
-        'equiv_skf',
-        'equiv_fag',
-        'equiv_ntn',
-        'equiv_timken',
-        'meta_title',
-        'meta_description',
-        'meta_keywords',
-        'is_active'
-    ];
-
-    public function rowFromPillowBlock(PillowBlock $pb): array
+    /**
+     * Resolve all unique specifications in the query, starting with known default specs.
+     */
+    protected function getUniqueSpecs(Builder $query): array
     {
-        $gallery = $pb->images;
-        $galleryStr = count($gallery) > 0 ? implode(',', $gallery) : '';
-
-        $specs = $pb->specifications;
-        $formatted = [];
-        if (is_array($specs)) {
-            foreach ($specs as $spec) {
-                $t = trim($spec['title'] ?? '');
-                $d = trim($spec['dimension'] ?? '');
-                $v = trim($spec['value'] ?? '');
-                if ($t !== '' || $d !== '' || $v !== '') {
-                    $formatted[] = "{$t}|{$d}|{$v}";
+        $dbSpecs = [];
+        (clone $query)->orderBy('id')->chunk(200, function ($pbs) use (&$dbSpecs) {
+            foreach ($pbs as $pb) {
+                if (is_array($pb->specifications)) {
+                    foreach ($pb->specifications as $spec) {
+                        $t = trim($spec['title'] ?? '');
+                        $d = trim($spec['dimension'] ?? '');
+                        if ($t !== '' || $d !== '') {
+                            $key = strtolower($t) . '|' . strtolower($d);
+                            $dbSpecs[$key] = ['title' => $t, 'dimension' => $d];
+                        }
+                    }
                 }
             }
-        }
-        $specificationsStr = implode(';', $formatted);
+        });
 
-        return [
-            'Bearing number' => (string)$pb->bearing_number,
-            'Specifications' => $specificationsStr,
-            
-            // Optional
-            'name' => (string)$pb->name,
-            'sku' => (string)$pb->sku,
-            'category_id' => $pb->category_id !== null ? (string)$pb->category_id : '',
-            'brand' => (string)$pb->brand,
-            'short_description' => (string)$pb->short_description,
-            'description' => (string)$pb->description,
-            'price' => $pb->price !== null ? (string)$pb->price : '',
-            'sale_price' => $pb->sale_price !== null ? (string)$pb->sale_price : '',
-            'image_url' => $pb->image !== null ? (string)$pb->image : '',
-            'video' => $pb->video !== null ? (string)$pb->video : '',
-            'pdf_catalogue' => $pb->pdf_catalogue !== null ? (string)$pb->pdf_catalogue : '',
-            'equiv_skf' => (string)$pb->equiv_skf,
-            'equiv_fag' => (string)$pb->equiv_fag,
-            'equiv_ntn' => (string)$pb->equiv_ntn,
-            'equiv_timken' => (string)$pb->equiv_timken,
-            'meta_title' => (string)$pb->meta_title,
-            'meta_description' => (string)$pb->meta_description,
-            'meta_keywords' => (string)$pb->meta_keywords,
-            'is_active' => $pb->is_active ? '1' : '0'
+        $knownSpecs = [
+            ['title' => 'inner dimension', 'dimension' => 'd ( inch and mm)'],
+            ['title' => 'Shaft diameter', 'dimension' => 'd'],
+            ['title' => 'Distance mounting base to centerline spheric. seating diam.', 'dimension' => 'h'],
+            ['title' => 'Housing length', 'dimension' => 'a'],
+            ['title' => 'Mounting holes distance', 'dimension' => 'e'],
+            ['title' => 'Housing width', 'dimension' => 'b'],
+            ['title' => ' Mounting hole length', 'dimension' => 'S2'],
+            ['title' => 'Width of Inner Ring', 'dimension' => 'S1'],
+            ['title' => 'Housing foot height', 'dimension' => 'g'],
+            ['title' => 'Housing height', 'dimension' => 'w'],
+            ['title' => 'Housing top width', 'dimension' => 'Bi'],
+            ['title' => 'Distance front side/bearing centre', 'dimension' => 'n'],
+            ['title' => 'bearing no.', 'dimension' => ''],
+            ['title' => 'Housing No.', 'dimension' => ''],
+            ['title' => 'Weight', 'dimension' => ''],
+            ['title' => 'speed Tolerances Grades', 'dimension' => 'J7']
         ];
+
+        $uniqueSpecs = $knownSpecs;
+        $seen = [];
+        foreach ($knownSpecs as $spec) {
+            $seen[strtolower($spec['title']) . '|' . strtolower($spec['dimension'])] = true;
+        }
+        foreach ($dbSpecs as $key => $spec) {
+            if (!isset($seen[$key])) {
+                $uniqueSpecs[] = $spec;
+                $seen[$key] = true;
+            }
+        }
+
+        return $uniqueSpecs;
+    }
+
+    /**
+     * Get headers for export based on unique specifications.
+     */
+    protected function getHeaders(array $uniqueSpecs): array
+    {
+        $headerRow1 = ['Bearing number'];
+        $headerRow2 = [''];
+
+        foreach ($uniqueSpecs as $spec) {
+            $headerRow1[] = $spec['title'];
+            $headerRow2[] = $spec['dimension'] !== '' ? $spec['dimension'] : '';
+        }
+
+        $otherColumns = [
+            'equiv_skf' => 'SKF',
+            'equiv_fag' => 'FAG',
+            'equiv_ntn' => 'NTN',
+            'equiv_timken' => 'TIMKEN',
+            'brand' => '',
+            'meta_title' => '',
+            'meta_description' => '',
+            'meta_keywords' => '',
+            'price' => '',
+            'sale_price' => '',
+            'name' => '',
+            'sku' => '',
+            'category_id' => '',
+            'short_description' => '',
+            'description' => '',
+            'image_url' => '',
+            'video' => '',
+            'pdf_catalogue' => '',
+            'is_active' => ''
+        ];
+
+        foreach ($otherColumns as $col1 => $col2) {
+            $headerRow1[] = $col1;
+            $headerRow2[] = $col2;
+        }
+
+        return [$headerRow1, $headerRow2];
+    }
+
+    /**
+     * Get row data for a single PillowBlock.
+     */
+    public function rowFromPillowBlock(PillowBlock $pb, array $uniqueSpecs): array
+    {
+        $row = [];
+        $row[] = (string)$pb->bearing_number;
+
+        $specsMap = [];
+        if (is_array($pb->specifications)) {
+            foreach ($pb->specifications as $spec) {
+                $t = strtolower(trim($spec['title'] ?? ''));
+                $d = strtolower(trim($spec['dimension'] ?? ''));
+                $specsMap[$t . '|' . $d] = trim($spec['value'] ?? '');
+            }
+        }
+
+        foreach ($uniqueSpecs as $spec) {
+            $key = strtolower($spec['title']) . '|' . strtolower($spec['dimension']);
+            $row[] = $specsMap[$key] ?? '';
+        }
+
+        $row[] = (string)$pb->equiv_skf;
+        $row[] = (string)$pb->equiv_fag;
+        $row[] = (string)$pb->equiv_ntn;
+        $row[] = (string)$pb->equiv_timken;
+        $row[] = (string)$pb->brand;
+        $row[] = (string)$pb->meta_title;
+        $row[] = (string)$pb->meta_description;
+        $row[] = (string)$pb->meta_keywords;
+        $row[] = $pb->price !== null ? (string)$pb->price : '';
+        $row[] = $pb->sale_price !== null ? (string)$pb->sale_price : '';
+        $row[] = (string)$pb->name;
+        $row[] = (string)$pb->sku;
+        $row[] = $pb->category_id !== null ? (string)$pb->category_id : '';
+        $row[] = (string)$pb->short_description;
+        $row[] = (string)$pb->description;
+        $row[] = $pb->image !== null ? (string)$pb->image : '';
+        $row[] = $pb->video !== null ? (string)$pb->video : '';
+        $row[] = $pb->pdf_catalogue !== null ? (string)$pb->pdf_catalogue : '';
+        $row[] = $pb->is_active ? '1' : '0';
+
+        return $row;
     }
 
     public function downloadCsv(Builder $query): StreamedResponse
@@ -99,17 +164,18 @@ class PillowBlockCatalogExportService
             }
             fwrite($out, "\xEF\xBB\xBF");
             
-            // Write both header rows
-            fputcsv($out, self::HEADER_ROW_1);
-            fputcsv($out, self::HEADER_ROW_2);
+            $uniqueSpecs = $this->getUniqueSpecs($query);
+            [$headerRow1, $headerRow2] = $this->getHeaders($uniqueSpecs);
 
-            (clone $query)->orderBy('id')->chunkById(200, function ($pbs) use ($out): void {
+            fputcsv($out, $headerRow1);
+            fputcsv($out, $headerRow2);
+
+            (clone $query)->orderBy('id')->chunkById(200, function ($pbs) use ($out, $uniqueSpecs): void {
                 foreach ($pbs as $pb) {
                     if (! $pb instanceof PillowBlock) {
                         continue;
                     }
-                    $assoc = $this->rowFromPillowBlock($pb);
-                    $line = array_map(static fn (string $col): string => $assoc[$col] ?? '', self::HEADER_ROW_2);
+                    $line = $this->rowFromPillowBlock($pb, $uniqueSpecs);
                     fputcsv($out, $line);
                 }
             });
@@ -128,18 +194,19 @@ class PillowBlockCatalogExportService
             $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
             
-            // Write both header rows
-            $sheet->fromArray([self::HEADER_ROW_1], null, 'A1');
-            $sheet->fromArray([self::HEADER_ROW_2], null, 'A2');
+            $uniqueSpecs = $this->getUniqueSpecs($query);
+            [$headerRow1, $headerRow2] = $this->getHeaders($uniqueSpecs);
+
+            $sheet->fromArray([$headerRow1], null, 'A1');
+            $sheet->fromArray([$headerRow2], null, 'A2');
 
             $rowIndex = 3;
-            (clone $query)->orderBy('id')->chunkById(200, function ($pbs) use ($sheet, &$rowIndex): void {
+            (clone $query)->orderBy('id')->chunkById(200, function ($pbs) use ($sheet, &$rowIndex, $uniqueSpecs): void {
                 foreach ($pbs as $pb) {
                     if (! $pb instanceof PillowBlock) {
                         continue;
                     }
-                    $assoc = $this->rowFromPillowBlock($pb);
-                    $line = array_map(static fn (string $col): string => $assoc[$col] ?? '', self::HEADER_ROW_2);
+                    $line = $this->rowFromPillowBlock($pb, $uniqueSpecs);
                     $sheet->fromArray([$line], null, 'A'.$rowIndex);
                     $rowIndex++;
                 }

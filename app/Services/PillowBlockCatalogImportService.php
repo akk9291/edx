@@ -48,13 +48,34 @@ class PillowBlockCatalogImportService
             // If row1 contains 'bearing number' or 'bearing no.' (case-insensitive)
             $isRow1Header = false;
             foreach ($row1 as $cell) {
-                if (preg_match('/bearing\s*no/i', (string)$cell) || preg_match('/bearing\s*number/i', (string)$cell)) {
+                $cellStr = (string)$cell;
+                if (preg_match('/bearing\s*no/i', $cellStr) || preg_match('/bearing\s*number/i', $cellStr)) {
                     $isRow1Header = true;
                     break;
                 }
             }
 
-            if ($isRow1Header) {
+            // Also check if row0 contains 'bearing number' or 'bearing no.' and row1 has sub-header symbols/dimensions
+            $isRow0HeaderAndRow1SubHeader = false;
+            $row0HasBearing = false;
+            foreach ($row0 as $cell) {
+                $cellStr = (string)$cell;
+                if (preg_match('/bearing\s*no/i', $cellStr) || preg_match('/bearing\s*number/i', $cellStr)) {
+                    $row0HasBearing = true;
+                    break;
+                }
+            }
+            if ($row0HasBearing) {
+                foreach ($row1 as $cell) {
+                    $cellStr = strtolower(trim((string)$cell));
+                    if (in_array($cellStr, ['d', 'h', 'a', 'e', 'b', 's1', 's2', 'bi', 'g', 'w', 'n', 'j7', 'skf', 'fag', 'ntn', 'timken'], true)) {
+                        $isRow0HeaderAndRow1SubHeader = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($isRow1Header || $isRow0HeaderAndRow1SubHeader) {
                 // Combine row0 and row1 to make unique headers
                 foreach ($row1 as $i => $val) {
                     $prefix = isset($row0[$i]) ? trim((string)$row0[$i]) : '';
@@ -144,7 +165,30 @@ class PillowBlockCatalogImportService
                     $pb->bearing_number = $data['bearing_number'] ?: null;
                     
                     $specifications = [];
-                    if ($dataStartIndex === 2) {
+                    $specsStr = trim($data['specifications'] ?? '');
+
+                    $isSerializedSpecs = (str_contains($specsStr, '|') || str_contains($specsStr, ';') || (str_starts_with($specsStr, '[') && str_ends_with($specsStr, ']')));
+
+                    if ($specsStr !== '' && $isSerializedSpecs) {
+                        if (str_starts_with($specsStr, '[') && str_ends_with($specsStr, ']')) {
+                            $decoded = json_decode($specsStr, true);
+                            if (is_array($decoded)) {
+                                $specifications = $decoded;
+                            }
+                        } else {
+                            $rowsList = explode(';', $specsStr);
+                            foreach ($rowsList as $r) {
+                                $parts = explode('|', $r);
+                                if (count($parts) >= 2) {
+                                    $specifications[] = [
+                                        'title' => trim($parts[0]),
+                                        'dimension' => trim($parts[1]),
+                                        'value' => isset($parts[2]) ? trim($parts[2]) : '',
+                                    ];
+                                }
+                            }
+                        }
+                    } elseif ($dataStartIndex === 2) {
                         $row0 = $rows[0];
                         $row1 = $rows[1];
                         $generalAliases = [
@@ -191,26 +235,6 @@ class PillowBlockCatalogImportService
                                 'dimension' => $title !== '' ? $dimension : '',
                                 'value' => $val
                             ];
-                        }
-                    } else {
-                        $specsStr = trim($data['specifications'] ?? '');
-                        if (str_starts_with($specsStr, '[') && str_ends_with($specsStr, ']')) {
-                            $decoded = json_decode($specsStr, true);
-                            if (is_array($decoded)) {
-                                $specifications = $decoded;
-                            }
-                        } elseif ($specsStr !== '') {
-                            $rowsList = explode(';', $specsStr);
-                            foreach ($rowsList as $r) {
-                                $parts = explode('|', $r);
-                                if (count($parts) >= 2) {
-                                    $specifications[] = [
-                                        'title' => trim($parts[0]),
-                                        'dimension' => trim($parts[1]),
-                                        'value' => isset($parts[2]) ? trim($parts[2]) : '',
-                                    ];
-                                }
-                            }
                         }
                     }
                     $pb->specifications = !empty($specifications) ? $specifications : null;
@@ -314,9 +338,20 @@ class PillowBlockCatalogImportService
     protected function getRowVal(array $row, array $headers, array $aliases, ?int $defaultIdx): string
     {
         foreach ($aliases as $alias) {
+            $aliasClean = trim((string)$alias);
             foreach ($headers as $idx => $header) {
-                if (strcasecmp(trim((string)$header), trim((string)$alias)) === 0) {
+                $headerClean = trim((string)$header);
+                if (strcasecmp($headerClean, $aliasClean) === 0) {
                     return isset($row[$idx]) ? trim((string)$row[$idx]) : '';
+                }
+                // Handle space-separated combined headers (e.g. "prefix suffix")
+                if (str_contains($headerClean, ' ')) {
+                    $parts = explode(' ', $headerClean);
+                    $lastPart = end($parts);
+                    $firstPart = $parts[0];
+                    if (strcasecmp($lastPart, $aliasClean) === 0 || strcasecmp($firstPart, $aliasClean) === 0) {
+                        return isset($row[$idx]) ? trim((string)$row[$idx]) : '';
+                    }
                 }
             }
         }

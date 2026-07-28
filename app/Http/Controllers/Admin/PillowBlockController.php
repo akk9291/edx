@@ -207,7 +207,7 @@ class PillowBlockController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('sku', 'like', "%{$search}%")
                     ->orWhere('bearing_number', 'like', "%{$search}%")
-                    ->orWhere('housing_number', 'like', "%{$search}%");
+                    ->orWhere('specifications', 'like', "%{$search}%");
             });
         }
 
@@ -536,5 +536,47 @@ class PillowBlockController extends Controller
             'errors' => $errors,
             'message' => "Successfully updated {$updated} Pillow Block(s)." . ($errors ? ' Some errors occurred.' : ''),
         ]);
+    }
+
+    /**
+     * Bulk delete Pillow Blocks.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:pillow_blocks,id',
+        ]);
+
+        $ids = $request->input('ids');
+        $deleted = 0;
+
+        foreach ($ids as $id) {
+            $pillowBlock = PillowBlock::find($id);
+            if ($pillowBlock) {
+                // Delete media
+                if ($pillowBlock->image) {
+                    Storage::disk('public')->delete($pillowBlock->image);
+                }
+                if ($pillowBlock->video) {
+                    Storage::disk('public')->delete($pillowBlock->video);
+                }
+                if ($pillowBlock->pdf_catalogue) {
+                    Storage::disk('public')->delete($pillowBlock->pdf_catalogue);
+                }
+
+                // Delete gallery images
+                foreach ($pillowBlock->galleryImages as $img) {
+                    Storage::disk('public')->delete($img->image_path);
+                    $img->delete();
+                }
+
+                $pillowBlock->delete();
+                $deleted++;
+            }
+        }
+
+        return redirect()->route('admin.pillow-block.index')
+            ->with('success', "Successfully deleted {$deleted} Pillow Block(s).");
     }
 }
