@@ -441,7 +441,7 @@
                 <img class="object-contain object-center duration-700" src="<?php echo e($product->image_url); ?>" alt="<?php echo e($product->name); ?>">
             </div>
             <div class="product-item product-infor w-full md:w-7/12 md:pl-6 lg:pl-8" data-item="<?php echo e($product->id); ?>">
-                <div class="product-name heading4 mt-1"><?php echo e($product->display_name); ?></div>
+                <div class="product-name heading4 mt-1"><?php echo e($product->sku); ?></div>
 
                 <div class="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
                     <div class="product-sale font-semibold edx-red px-3 py-0.5 inline-block rounded-full"><?php echo e($product->category->name ?? 'Deep Groove Ball Bearing'); ?></div>

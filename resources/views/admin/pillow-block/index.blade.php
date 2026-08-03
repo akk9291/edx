@@ -152,7 +152,7 @@
                                              onerror="this.onerror=null; this.src='{{ $placeholder }}';">
                                     </td>
                                     <td>
-                                        <div class="fw-semibold">{{ $pb->name }}</div>
+                                        <div class="fw-semibold">{{ $pb->bearing_number }}</div>
                                         <small class="text-muted">SKU: {{ $pb->sku }}</small>
                                     </td>
                                     <td>

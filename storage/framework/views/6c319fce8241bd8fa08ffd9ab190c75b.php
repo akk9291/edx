@@ -150,7 +150,7 @@
                                              onerror="this.onerror=null; this.src='<?php echo e($placeholder); ?>';">
                                     </td>
                                     <td>
-                                        <div class="fw-semibold"><?php echo e($pb->name); ?></div>
+                                        <div class="fw-semibold"><?php echo e($pb->bearing_number); ?></div>
                                         <small class="text-muted">SKU: <?php echo e($pb->sku); ?></small>
                                     </td>
                                     <td>

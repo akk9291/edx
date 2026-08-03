@@ -231,24 +231,24 @@ Route::get('/range', function (Request $request) {
 
 // Static Pages
 Route::get('/edx-world', function () {
-    return view('frontend.page', ['title' => 'EDX World', 'page' => 'edx-world']);
+    return redirect()->away('https://edxromania.ro/edx-world/', 301);
 })->name('frontend.edx-world');
 
 Route::get('/quality-path', function () {
-    return view('frontend.page', ['title' => 'Quality Path', 'page' => 'quality-path']);
+    return redirect()->away('https://edxromania.ro/quality-path/', 301);
 })->name('frontend.quality-path');
 
 Route::get('/industries', function () {
-    return view('frontend.page', ['title' => 'Industries', 'page' => 'industries']);
+    return redirect()->away('https://edxromania.ro/industries/', 301);
 })->name('frontend.industries');
 
 Route::get('/applications', function () {
-    return view('frontend.page', ['title' => 'Applications', 'page' => 'applications']);
+    return redirect()->away('https://edxromania.ro/applications/', 301);
 })->name('frontend.applications');
 
 // Contact Page
 Route::get('/contact', function () {
-    return view('frontend.contact');
+    return redirect()->away('https://edxromania.ro/contact-us/', 301);
 })->name('frontend.contact');
 
 Route::post('/contact', function (Request $request) {

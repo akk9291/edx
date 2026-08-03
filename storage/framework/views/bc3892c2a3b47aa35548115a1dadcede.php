@@ -25,7 +25,7 @@
                     </tr>
                     <tr>
                         <th>Name</th>
-                        <td><strong><?php echo e($pillowBlock->name); ?></strong></td>
+                        <td><strong><?php echo e($pillowBlock->bearing_number); ?></strong></td>
                     </tr>
                     <tr>
                         <th>Slug</th>

@@ -40,7 +40,7 @@
                     <div class="list-action flex items-center">
                         {{-- Do not use class "cart-icon": theme main.js binds the first .cart-icon to legacy cart modal and breaks quota click. --}}
                         <button type="button" id="edx-header-quota-bag" class="quota-bag-open quota-header-bag max-md:hidden cursor-pointer no-underline text-inherit appearance-none bg-transparent border-0 p-0" title="Quota list" aria-label="Open quotation list" aria-haspopup="dialog" aria-expanded="false" aria-controls="edx-quota-modal">
-                            <i class="ph-bold ph-handbag text-2xl" aria-hidden="true"></i>
+                            <i class="ph-bold ph-handbag" aria-hidden="true"></i>
                             <span class="cart-quota-badge cart-quota-badge--empty" aria-label="Items in quota list">0</span>
                         </button>
                     </div>

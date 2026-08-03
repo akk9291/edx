@@ -27,7 +27,7 @@
                     </tr>
                     <tr>
                         <th>Name</th>
-                        <td><strong>{{ $pillowBlock->name }}</strong></td>
+                        <td><strong>{{ $pillowBlock->bearing_number }}</strong></td>
                     </tr>
                     <tr>
                         <th>Slug</th>
