@@ -162,6 +162,35 @@ class PillowBlockController extends Controller
             ->with('success', $message);
     }
 
+    protected function pillowBlocksIndexQuery(Request $request)
+    {
+        $query = PillowBlock::query()->with('category');
+
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('bearing_number', 'like', "%{$search}%")
+                    ->orWhere('specifications', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        return $query;
+    }
+
     /**
      * Export Pillow Blocks.
      */
@@ -176,7 +205,7 @@ class PillowBlockController extends Controller
         $format = $request->get('format', 'xlsx');
         $scope = $request->get('scope', 'all');
 
-        $query = PillowBlock::query();
+        $query = $this->pillowBlocksIndexQuery($request);
 
         if ($scope === 'active') {
             $query->where('is_active', true);
@@ -199,31 +228,15 @@ class PillowBlockController extends Controller
      */
     public function index(Request $request)
     {
-        $query = PillowBlock::query()->with('category');
-
-        if ($request->filled('search')) {
-            $search = $request->get('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhere('bearing_number', 'like', "%{$search}%")
-                    ->orWhere('specifications', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('status')) {
-            if ($request->status === 'active') {
-                $query->where('is_active', true);
-            } elseif ($request->status === 'inactive') {
-                $query->where('is_active', false);
-            }
-        }
+        $query = $this->pillowBlocksIndexQuery($request);
 
         $pillowBlocks = $query->orderBy('created_at', 'desc')
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.pillow-block.index', compact('pillowBlocks'));
+        $categories = Category::query()->where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.pillow-block.index', compact('pillowBlocks', 'categories'));
     }
 
     /**

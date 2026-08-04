@@ -11,7 +11,7 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <?php
-                    $exportQuery = request()->only(['search', 'status']);
+                    $exportQuery = request()->only(['search', 'status', 'category_id']);
                 ?>
                 <button type="button" class="btn btn-outline-dark" id="toggleDatabaseMode">
                     <i class="bi bi-database me-2"></i>Database Mode
@@ -62,7 +62,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <form method="GET" action="<?php echo e(route('admin.products.index')); ?>" class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label for="search" class="form-label">Search</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -70,11 +70,23 @@
                                    class="form-control" 
                                    id="search" 
                                    name="search" 
-                                   placeholder="Search by name, SKU, or category..." 
+                                   placeholder="Search by name, SKU..." 
                                    value="<?php echo e(request('search')); ?>">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">All Categories</option>
+                            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($category->id); ?>" <?php echo e(request('category_id') == $category->id ? 'selected' : ''); ?>>
+                                    <?php echo e($category->name); ?>
+
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status">
                             <option value="">All Status</option>
@@ -88,7 +100,7 @@
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-search me-1"></i>Search
                             </button>
-                            <?php if(request()->hasAny(['search', 'status'])): ?>
+                            <?php if(request()->hasAny(['search', 'status', 'category_id'])): ?>
                                 <a href="<?php echo e(route('admin.products.index')); ?>" class="btn btn-outline-secondary">
                                     <i class="bi bi-x-lg"></i>
                                 </a>
@@ -101,7 +113,7 @@
     </div>
 </div>
 
-<?php if(request()->hasAny(['search', 'status'])): ?>
+<?php if(request()->hasAny(['search', 'status', 'category_id'])): ?>
     <div class="alert alert-info mb-3">
         <i class="bi bi-info-circle me-2"></i>
         Found <strong><?php echo e($products->total()); ?></strong> product(s) matching your search criteria.

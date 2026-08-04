@@ -201,6 +201,10 @@ class ProductController extends Controller
             }
         }
 
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
         return $query;
     }
 
@@ -214,7 +218,9 @@ class ProductController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.products.index', compact('products'));
+        $categories = Category::query()->where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     /**

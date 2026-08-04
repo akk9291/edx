@@ -13,7 +13,7 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
                 @php
-                    $exportQuery = request()->only(['search', 'status']);
+                    $exportQuery = request()->only(['search', 'status', 'category_id']);
                 @endphp
                 <button type="button" class="btn btn-outline-dark" id="toggleDatabaseMode">
                     <i class="bi bi-database me-2"></i>Database Mode
@@ -67,7 +67,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <form method="GET" action="{{ route('admin.pillow-block.index') }}" class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label for="search" class="form-label">Search</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -79,7 +79,18 @@
                                    value="{{ request('search') }}">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">All Categories</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status">
                             <option value="">All Status</option>
@@ -93,7 +104,7 @@
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-search me-1"></i>Search
                             </button>
-                            @if(request()->hasAny(['search', 'status']))
+                            @if(request()->hasAny(['search', 'status', 'category_id']))
                                 <a href="{{ route('admin.pillow-block.index') }}" class="btn btn-outline-secondary">
                                     <i class="bi bi-x-lg"></i>
                                 </a>
@@ -106,7 +117,7 @@
     </div>
 </div>
 
-@if(request()->hasAny(['search', 'status']))
+@if(request()->hasAny(['search', 'status', 'category_id']))
     <div class="alert alert-info mb-3">
         <i class="bi bi-info-circle me-2"></i>
         Found <strong>{{ $pillowBlocks->total() }}</strong> pillow block(s) matching your search criteria.
