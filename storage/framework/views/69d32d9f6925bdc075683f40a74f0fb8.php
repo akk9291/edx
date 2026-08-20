@@ -538,7 +538,7 @@
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: min(71rem, calc(100vw - 1.5rem));
+            max-width: min(28rem, calc(100vw - 1.5rem));
             max-height: min(42rem, 92vh);
             margin: 0 auto;
             border-radius: 1rem;
@@ -549,27 +549,9 @@
             display: flex;
             flex-direction: column;
         }
-        @media (min-width: 1024px) {
-            #edx-quota-modal .edx-quota-card {
-                flex-direction: row;
-                align-items: stretch;
-                max-height: min(38rem, 92vh);
-            }
-            #edx-quota-modal .edx-quota-card-aside {
-                flex: 1.15 1 0%;
-                order: 1;
-                border-top: 0;
-                border-right: 1px solid #e9e9e9;
-            }
-            #edx-quota-modal .edx-quota-card-main {
-                flex: 0.85 1 0%;
-                order: 2;
-                min-width: 300px;
-            }
-        }
         #edx-quota-modal .edx-quota-card-aside {
             order: 2;
-            display: flex;
+            display: none;
             flex-direction: column;
             min-height: 0;
             min-width: 0;
@@ -582,6 +564,26 @@
             flex-direction: column;
             min-height: 0;
             min-width: 0;
+        }
+        @media (min-width: 768px) {
+            #edx-quota-modal .edx-quota-card {
+                flex-direction: row;
+                align-items: stretch;
+                max-width: min(71rem, calc(100vw - 1.5rem));
+                max-height: min(38rem, 92vh);
+            }
+            #edx-quota-modal .edx-quota-card-aside {
+                display: flex;
+                flex: 1.15 1 0%;
+                order: 1;
+                border-top: 0;
+                border-right: 1px solid #e9e9e9;
+            }
+            #edx-quota-modal .edx-quota-card-main {
+                flex: 0.85 1 0%;
+                order: 2;
+                min-width: 300px;
+            }
         }
 
         /* Quota modal footer CTAs — layout does not rely on Tailwind scanning Blade */
@@ -792,7 +794,7 @@
                         <h3 class="heading6 text-black mb-0 tracking-tight">You may also like</h3>
                         <p class="caption1 text-secondary mt-1 mb-0">More bearings from our catalogue</p>
                     </div>
-                    <div id="edx-quota-modal-suggestions" class="flex-1 overflow-y-auto px-5 py-4 min-h-[8rem]">
+                    <div id="edx-quota-modal-suggestions" class="flex-1 overflow-y-auto px-5 py-4 pb-8 min-h-[8rem]" style="padding-bottom: 32px;">
                         <p class="text-secondary caption1 mb-0">Loading…</p>
                     </div>
                 </aside>
@@ -881,10 +883,18 @@
                 },
                 body: JSON.stringify({ product_id: parseInt(productId, 10), quantity: qty, product_type: productType })
             }).then(function (res) {
+                if (res.status === 419) {
+                    return { ok: false, isCsrf: true };
+                }
                 return res.json().then(function (body) {
                     return { ok: res.ok, body: body };
                 });
             }).then(function (result) {
+                if (result.isCsrf) {
+                    alert('Session expired. Reloading page...');
+                    window.location.reload();
+                    return;
+                }
                 if (result.body && typeof result.body.count !== 'undefined') {
                     setQuotaBadge(result.body.count);
                 }
@@ -1003,16 +1013,25 @@
             var cards = list.map(function (p) {
                 var url = '/product/' + encodeURIComponent(p.slug);
                 var thumb = p.image_url
-                    ? '<img src="' + escQuota(p.image_url) + '" alt="" class="w-full h-full object-contain" loading="lazy">'
+                    ? '<img src="' + escQuota(p.image_url) + '" alt="" class="object-contain" style="max-height: 80px;" loading="lazy">'
                     : '<div class="flex h-full w-full items-center justify-center text-stone-400"><i class="ph ph-package text-2xl" aria-hidden="true"></i></div>';
-                return '<a href="' + url + '" class="group flex flex-col overflow-hidden rounded-xl border border-line bg-white no-underline text-inherit shadow-sm transition-colors hover:border-black">' +
-                    '<div class="aspect-square bg-stone-100 p-2">' + thumb + '</div>' +
-                    '<div class="p-2.5">' +
-                    '<div class="text-xs font-semibold leading-snug text-black line-clamp-2">' + escQuota(p.sku || p.name) + '</div>' +
-                    '<div class="caption1 mt-0.5 line-clamp-2 text-secondary">' + escQuota(p.name) + '</div>' +
+                
+                var cleanName = p.name || '';
+                var skuVal = (p.sku || '').trim();
+                if (skuVal && cleanName.endsWith(skuVal)) {
+                    cleanName = cleanName.substring(0, cleanName.length - skuVal.length).trim();
+                }
+
+                return '<a href="' + url + '" class="group flex flex-col overflow-hidden rounded-xl border border-line bg-white no-underline text-inherit shadow-sm transition-all duration-300 hover:shadow-md hover:border-red-600">' +
+                    '<div class="bg-white p-2 flex items-center justify-center border-b border-line/60" style="padding: 8px; height: 100px;">' + thumb + '</div>' +
+                    '<div class="flex-1 flex flex-col justify-between" style="padding: 8px 10px 10px 10px;">' +
+                    '<div>' +
+                    '<div class="text-sm font-bold text-red-600 leading-tight" style="margin-bottom: 2px;">' + escQuota(skuVal || 'Product') + '</div>' +
+                    '<div class="text-xs text-stone-600 leading-snug line-clamp-2" style="font-size: 11px; line-height: 1.3;">' + escQuota(cleanName) + '</div>' +
+                    '</div>' +
                     '</div></a>';
             }).join('');
-            quotaModalSuggestions.innerHTML = '<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">' + cards + '</div>';
+            quotaModalSuggestions.innerHTML = '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' + cards + '</div>';
         }
 
         function renderQuotaModal(data) {

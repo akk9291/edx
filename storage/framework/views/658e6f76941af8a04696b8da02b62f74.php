@@ -7,6 +7,87 @@
         background-color: rgb(236 33 39);
         color: #fff !important;
     }
+    .filter-toggle-container {
+        display: block;
+    }
+    @media (min-width: 768px) {
+        .filter-toggle-container {
+            display: none !important;
+        }
+    }
+    @media (max-width: 575px) {
+        .product-item.edxpro .product-main {
+            flex-direction: row !important;
+            align-items: flex-start !important;
+            gap: 1rem !important;
+            padding: 0.75rem !important;
+            flex-wrap: wrap !important;
+        }
+        .product-item.edxpro .product-main > a {
+            flex-direction: row !important;
+            align-items: flex-start !important;
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            gap: 1rem !important;
+            max-width: 100% !important;
+        }
+        .product-item.edxpro .product-thumb {
+            width: 80px !important;
+            height: 80px !important;
+            flex-shrink: 0 !important;
+            border-radius: 0.75rem !important;
+            border: 1px solid #e9e9e9 !important;
+            padding: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: #fff !important;
+            max-width: 80px !important;
+        }
+        .product-item.edxpro .product-thumb .product-img {
+            width: 100% !important;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .product-item.edxpro .product-thumb img {
+            width: auto !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: contain !important;
+        }
+        .product-item.edxpro .product-infor {
+            width: auto !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+            margin-top: 0 !important;
+        }
+        .product-item.edxpro .product-name {
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+        }
+        .product-item.edxpro .product-price-block {
+            margin-top: 0.25rem !important;
+        }
+        .product-item.edxpro .product-price {
+            font-size: 0.75rem !important;
+            padding: 2px 10px !important;
+        }
+        .product-item.edxpro .min {
+            font-size: 0.75rem !important;
+            margin-top: 0.25rem !important;
+        }
+        .product-item.edxpro .action {
+            width: 100% !important;
+            margin-top: 0.5rem !important;
+            flex: 1 1 100% !important;
+        }
+        .product-item.edxpro .edx-btn-add-quote {
+            width: 100% !important;
+        }
+    }
 </style>
 <!-- Breadcrumb (red) -->
 <div class="breadcrumb-block style-shared" style="background-color: #ec2127;">
@@ -37,8 +118,15 @@
 <div class="shop-product breadcrumb1 lg:py-20 md:py-14 py-10">
     <div class="container">
         
+        <div class="filter-toggle-container mb-4">
+            <button type="button" id="mobileFilterToggle" class="w-full py-3 px-4 flex items-center justify-center gap-2 rounded-xl bg-black text-white font-semibold text-sm transition-colors hover:bg-stone-800">
+                <i class="ph ph-sliders text-lg" aria-hidden="true"></i> Filter Products
+            </button>
+        </div>
+
+        
         <div class="flex max-md:flex-wrap max-md:flex-col gap-y-8">
-            <div class="sidebar lg:w-1/4 md:w-1/3 w-full md:pr-12">
+            <div class="sidebar lg:w-1/4 md:w-1/3 w-full md:pr-12 max-md:hidden" id="catalogSidebar">
                 <?php echo $__env->make('frontend.partials.catalog-sidebar', ['categories' => $categories ?? collect(), 'facets' => $facets ?? ['rows' => []]], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             </div>
             <div class="list-product-block style-list lg:w-3/4 md:w-2/3 w-full md:pl-3">
@@ -170,6 +258,24 @@
         </div>
     </div>
 </div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('scripts'); ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('mobileFilterToggle');
+    const sidebar = document.getElementById('catalogSidebar');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('max-md:hidden');
+            const isHidden = sidebar.classList.contains('max-md:hidden');
+            toggleBtn.innerHTML = isHidden 
+                ? '<i class="ph ph-sliders text-lg" aria-hidden="true"></i> Filter Products'
+                : '<i class="ph ph-x text-lg" aria-hidden="true"></i> Close Filters';
+        });
+    }
+});
+</script>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.frontend', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\laragon\www\edx\resources\views/frontend/range.blade.php ENDPATH**/ ?>

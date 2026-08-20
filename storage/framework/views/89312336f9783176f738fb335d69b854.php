@@ -17,15 +17,18 @@
                     <i class="bi bi-database me-2"></i>Database Mode
                 </button>
                 <div class="btn-group">
-                    <a href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'csv']))); ?>" class="btn btn-outline-secondary">
-                        <i class="bi bi-download me-2"></i>Export CSV
-                    </a>
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">Export format</span>
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-download me-2"></i>Export Options
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'csv']))); ?>">CSV (.csv)</a></li>
-                        <li><a class="dropdown-item" href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'xlsx']))); ?>">Excel (.xlsx)</a></li>
+                        <li><a class="dropdown-item" href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'xlsx', 'scope' => 'all']))); ?>">Export All (.xlsx)</a></li>
+                        <li><a class="dropdown-item" href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'csv', 'scope' => 'all']))); ?>">Export All (.csv)</a></li>
+                        <li><a class="dropdown-item" href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'xlsx', 'scope' => 'active']))); ?>">Export Active Only</a></li>
+                        <li><a class="dropdown-item" href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'xlsx', 'scope' => 'inactive']))); ?>">Export Inactive Only</a></li>
+                        <li><a class="dropdown-item" href="<?php echo e(route('admin.products.bearing-export', array_merge($exportQuery, ['format' => 'xlsx', 'scope' => 'featured']))); ?>">Export Featured Only</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="exportSelectedXlsx">Export Selected (.xlsx)</a></li>
+                        <li><a class="dropdown-item" href="#" id="exportSelectedCsv">Export Selected (.csv)</a></li>
                     </ul>
                 </div>
                 <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bearingImportModal">
@@ -127,6 +130,19 @@
     <div class="col-12">
         <!-- Normal View -->
         <div class="card" id="normalView">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">Show</span>
+                    <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
+                        <option value="15" <?php echo e(request('per_page', 15) == 15 ? 'selected' : ''); ?>>15</option>
+                        <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
+                        <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
+                        <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
+                        <option value="all" <?php echo e(request('per_page') == 'all' ? 'selected' : ''); ?>>All</option>
+                    </select>
+                    <span class="text-muted small">entries</span>
+                </div>
+            </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover">
@@ -327,6 +343,19 @@
                         <label for="import_file" class="form-label">File (.csv, .txt, .xlsx, .xls — max 20&nbsp;MB)</label>
                         <input type="file" class="form-control" name="import_file" id="import_file" accept=".csv,.txt,.xlsx,.xls" required>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">If Bearing Number already exists:</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="duplicate_action" id="dup_skip_prod" value="skip" checked>
+                                <label class="form-check-label" for="dup_skip_prod">Skip Duplicate</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="duplicate_action" id="dup_update_prod" value="update">
+                                <label class="form-check-label" for="dup_update_prod">Update Existing Row</label>
+                            </div>
+                        </div>
+                    </div>
                     <p class="mb-2">
                         <a href="<?php echo e(route('admin.products.bearing-import.sample')); ?>" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-download me-1"></i>Download sample CSV (DGBB-style)
@@ -515,6 +544,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.set('page', 1);
+            window.location.href = url.toString();
+        });
+    }
+    // Export Selected Handler
+    function exportSelected(format) {
+        const ids = [];
+        rowCheckboxes.forEach(cb => {
+            if (cb.checked) {
+                ids.push(cb.getAttribute('data-id'));
+            }
+        });
+        
+        if (ids.length === 0) {
+            alert('Please select at least one product to export.');
+            return;
+        }
+
+        const url = '<?php echo e(route('admin.products.bearing-export')); ?>?format=' + format + '&scope=selected&selected_ids=' + ids.join(',');
+        window.location.href = url;
+    }
+
+    document.getElementById('exportSelectedXlsx').addEventListener('click', function(e) {
+        e.preventDefault();
+        exportSelected('xlsx');
+    });
+
+    document.getElementById('exportSelectedCsv').addEventListener('click', function(e) {
+        e.preventDefault();
+        exportSelected('csv');
+    });
 });
 </script>
 <?php $__env->stopSection(); ?>

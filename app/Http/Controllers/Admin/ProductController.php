@@ -138,9 +138,12 @@ class ProductController extends Controller
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt,xlsx,xls|max:20480',
+            'duplicate_action' => 'nullable|string|in:skip,update',
         ]);
 
-        $result = $importer->import($request->file('import_file'));
+        $duplicateAction = $request->input('duplicate_action', 'skip');
+
+        $result = $importer->import($request->file('import_file'), $duplicateAction);
         $message = sprintf(
             'Bearing import finished: %d created, %d updated, %d rows skipped.',
             $result['created'],
@@ -164,10 +167,25 @@ class ProductController extends Controller
     {
         $request->validate([
             'format' => 'nullable|in:csv,xlsx',
+            'scope' => 'nullable|in:all,active,inactive,featured,selected',
+            'selected_ids' => 'nullable|string',
         ]);
 
-        $format = $request->get('format', 'csv');
+        $format = $request->get('format', 'xlsx');
+        $scope = $request->get('scope', 'all');
+
         $query = $this->productsIndexQuery($request);
+
+        if ($scope === 'active') {
+            $query->where('is_active', true);
+        } elseif ($scope === 'inactive') {
+            $query->where('is_active', false);
+        } elseif ($scope === 'featured') {
+            $query->where('is_featured', true);
+        } elseif ($scope === 'selected' && $request->filled('selected_ids')) {
+            $ids = array_filter(explode(',', $request->input('selected_ids')));
+            $query->whereIn('id', $ids);
+        }
 
         return $format === 'xlsx'
             ? $exporter->downloadXlsx($query)
@@ -213,9 +231,16 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        $perPage = $request->get('per_page', 15);
+        if ($perPage === 'all') {
+            $perPage = $this->productsIndexQuery($request)->count() ?: 15;
+        } else {
+            $perPage = (int) $perPage;
+        }
+
         $products = $this->productsIndexQuery($request)
             ->orderBy('created_at', 'desc')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         $categories = Category::query()->where('is_active', true)->orderBy('name')->get();

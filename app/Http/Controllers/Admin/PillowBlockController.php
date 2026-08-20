@@ -223,15 +223,19 @@ class PillowBlockController extends Controller
             : $exporter->downloadCsv($query);
     }
 
-    /**
-     * Display a listing of Pillow Blocks.
-     */
     public function index(Request $request)
     {
         $query = $this->pillowBlocksIndexQuery($request);
 
+        $perPage = $request->get('per_page', 15);
+        if ($perPage === 'all') {
+            $perPage = (clone $query)->count() ?: 15;
+        } else {
+            $perPage = (int) $perPage;
+        }
+
         $pillowBlocks = $query->orderBy('created_at', 'desc')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         $categories = Category::query()->where('is_active', true)->orderBy('name')->get();

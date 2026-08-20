@@ -17,7 +17,27 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        return view('admin.dashboard');
+        $totalCategories = \App\Models\Category::count();
+        $totalProducts = \App\Models\PillowBlock::count();
+        $totalQuotations = \App\Models\QuotaRequest::count();
+
+        $activeProducts = \App\Models\PillowBlock::where('is_active', true)->count();
+        $featuredProducts = \App\Models\PillowBlock::where('is_featured', true)->count();
+        $pendingQuotations = \App\Models\QuotaRequest::where('status', 'pending')->count();
+
+        $recentQuotations = \App\Models\QuotaRequest::orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        return view('admin.dashboard', compact(
+            'totalCategories',
+            'totalProducts',
+            'totalQuotations',
+            'activeProducts',
+            'featuredProducts',
+            'pendingQuotations',
+            'recentQuotations'
+        ));
     }
 
     /**

@@ -131,6 +131,19 @@
     <div class="col-12">
         <!-- Normal View -->
         <div class="card" id="normalView">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">Show</span>
+                    <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
+                        <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                    </select>
+                    <span class="text-muted small">entries</span>
+                </div>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -550,6 +563,16 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         exportSelected('csv');
     });
+
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.set('page', 1);
+            window.location.href = url.toString();
+        });
+    }
 });
 </script>
 @endsection

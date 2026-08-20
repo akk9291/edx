@@ -11,7 +11,7 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <?php
-                    $exportQuery = request()->only(['search', 'status']);
+                    $exportQuery = request()->only(['search', 'status', 'category_id']);
                 ?>
                 <button type="button" class="btn btn-outline-dark" id="toggleDatabaseMode">
                     <i class="bi bi-database me-2"></i>Database Mode
@@ -65,7 +65,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <form method="GET" action="<?php echo e(route('admin.pillow-block.index')); ?>" class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label for="search" class="form-label">Search</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -77,7 +77,19 @@
                                    value="<?php echo e(request('search')); ?>">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">All Categories</option>
+                            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($category->id); ?>" <?php echo e(request('category_id') == $category->id ? 'selected' : ''); ?>>
+                                    <?php echo e($category->name); ?>
+
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status">
                             <option value="">All Status</option>
@@ -91,7 +103,7 @@
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-search me-1"></i>Search
                             </button>
-                            <?php if(request()->hasAny(['search', 'status'])): ?>
+                            <?php if(request()->hasAny(['search', 'status', 'category_id'])): ?>
                                 <a href="<?php echo e(route('admin.pillow-block.index')); ?>" class="btn btn-outline-secondary">
                                     <i class="bi bi-x-lg"></i>
                                 </a>
@@ -104,7 +116,7 @@
     </div>
 </div>
 
-<?php if(request()->hasAny(['search', 'status'])): ?>
+<?php if(request()->hasAny(['search', 'status', 'category_id'])): ?>
     <div class="alert alert-info mb-3">
         <i class="bi bi-info-circle me-2"></i>
         Found <strong><?php echo e($pillowBlocks->total()); ?></strong> pillow block(s) matching your search criteria.
@@ -118,6 +130,19 @@
     <div class="col-12">
         <!-- Normal View -->
         <div class="card" id="normalView">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">Show</span>
+                    <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
+                        <option value="15" <?php echo e(request('per_page', 15) == 15 ? 'selected' : ''); ?>>15</option>
+                        <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
+                        <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
+                        <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
+                        <option value="all" <?php echo e(request('per_page') == 'all' ? 'selected' : ''); ?>>All</option>
+                    </select>
+                    <span class="text-muted small">entries</span>
+                </div>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -539,6 +564,16 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         exportSelected('csv');
     });
+
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.set('page', 1);
+            window.location.href = url.toString();
+        });
+    }
 });
 </script>
 <?php $__env->stopSection(); ?>

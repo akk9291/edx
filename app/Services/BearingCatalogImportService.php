@@ -19,7 +19,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  */
 class BearingCatalogImportService
 {
-    public function import(UploadedFile $file): array
+    public function import(UploadedFile $file, string $duplicateAction = 'skip'): array
     {
         $path = $file->getRealPath();
         if ($path === false) {
@@ -85,6 +85,11 @@ class BearingCatalogImportService
 
                     $product = Product::query()->where('sku', $sku)->first();
                     $wasExisting = $product !== null;
+                    if ($wasExisting && $duplicateAction === 'skip') {
+                        $skipped++;
+
+                        continue;
+                    }
                     if (! $product) {
                         $product = new Product(['sku' => $sku]);
                         $product->slug = $this->makeUniqueSlug(Str::slug($sku.'-'.($category?->slug ?? 'bearing')));
