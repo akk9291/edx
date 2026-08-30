@@ -188,7 +188,7 @@ class PillowBlock extends Model
             return false;
         }
         $path = trim($path);
-        if ($path === '') {
+        if ($path === '' || str_contains($path, 'PhotoshopExtension_Image-1.webp') || str_ends_with($path, '.tmp') || str_contains($path, 'Temp')) {
             return false;
         }
 
@@ -258,12 +258,20 @@ class PillowBlock extends Model
             }
         }
 
+        // Priority 1: Product's own image (main or gallery)
         foreach ($candidates as $candidate) {
             if (self::isAcceptableImageSource($candidate)) {
                 return $candidate;
             }
         }
 
+        // Priority 2: Category image
+        $categoryImage = $this->category?->image;
+        if (is_string($categoryImage) && trim($categoryImage) !== '' && self::isAcceptableImageSource($categoryImage)) {
+            return trim($categoryImage);
+        }
+
+        // Priority 3: Fallback (publicUrlForPath returns default placeholder image)
         return null;
     }
 }

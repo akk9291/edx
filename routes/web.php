@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Frontend\ProductPdfController;
 use App\Http\Controllers\Frontend\QuotaListController;
+use App\Http\Controllers\Frontend\SearchSuggestionController;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\MainCategory;
@@ -56,7 +57,7 @@ Route::get('/', function (Request $request) {
 Route::get('/product/{slug}', function ($slug) {
     $product = \App\Models\PillowBlock::where('slug', $slug)
         ->where('is_active', true)
-        ->with('category')
+        ->with(['category', 'galleryImages'])
         ->first();
 
     if ($product) {
@@ -106,6 +107,10 @@ Route::get('/product/{slug}/pdf/preview', [ProductPdfController::class, 'preview
     ->name('frontend.product.pdf.preview');
 Route::get('/product/{slug}/pdf/download', [ProductPdfController::class, 'download'])
     ->name('frontend.product.pdf.download');
+
+// Search Suggestions (Live autocomplete)
+Route::get('/search/suggestions', [SearchSuggestionController::class, 'suggestions'])
+    ->name('frontend.search.suggestions');
 
 // Product Range / Shop Page
 Route::get('/range', function (Request $request) {

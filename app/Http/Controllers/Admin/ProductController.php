@@ -317,7 +317,7 @@ class ProductController extends Controller
         $validated['price'] = $request->filled('price') ? (float) $request->input('price') : 0;
         $validated['sale_price'] = $request->filled('sale_price') ? (float) $request->input('sale_price') : null;
 
-        unset($validated['specifications'], $validated['bearing_specs']);
+        unset($validated['specifications'], $validated['bearing_specs'], $validated['gallery_images']);
         $mergedSpecs = $this->specificationsFromBearingAndExtraForms($request);
         $validated['specifications'] = $mergedSpecs !== [] ? $mergedSpecs : null;
 
@@ -329,15 +329,19 @@ class ProductController extends Controller
             $counter++;
         }
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $validated['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($validated['image']);
         }
 
         // Handle gallery images (multiple)
         $galleryPaths = [];
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $file) {
-                $galleryPaths[] = $file->store('products/gallery', 'public');
+                if ($file && $file->isValid()) {
+                    $galleryPaths[] = $file->store('products/gallery', 'public');
+                }
             }
         }
         if (! empty($galleryPaths)) {
@@ -345,8 +349,10 @@ class ProductController extends Controller
         }
 
         // Handle product video
-        if ($request->hasFile('video')) {
+        if ($request->hasFile('video') && $request->file('video')->isValid()) {
             $validated['video'] = $request->file('video')->store('products/videos', 'public');
+        } else {
+            unset($validated['video']);
         }
 
         Product::create($validated);
@@ -429,7 +435,7 @@ class ProductController extends Controller
         $validated['price'] = $request->filled('price') ? (float) $request->input('price') : 0;
         $validated['sale_price'] = $request->filled('sale_price') ? (float) $request->input('sale_price') : null;
 
-        unset($validated['specifications'], $validated['bearing_specs']);
+        unset($validated['specifications'], $validated['bearing_specs'], $validated['gallery_images']);
         $mergedSpecs = $this->specificationsFromBearingAndExtraForms($request);
         if (is_array($mergedSpecs)) {
             $mergedSpecs = $this->preserveImportedSuffixScalars($product, $mergedSpecs);
@@ -451,16 +457,18 @@ class ProductController extends Controller
 
         // Handle remove_image
         if ($request->filled('remove_image') && $request->remove_image == '1') {
-            if ($product->image) {
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
-                $validated['image'] = null;
             }
-        } elseif ($request->hasFile('image')) {
+            $validated['image'] = null;
+        } elseif ($request->hasFile('image') && $request->file('image')->isValid()) {
             // Delete old image when uploading new one
-            if ($product->image) {
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
             }
             $validated['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($validated['image']);
         }
 
         // Handle remove_gallery_images
@@ -472,7 +480,9 @@ class ProductController extends Controller
         if (! empty($removeGalleryPaths)) {
             foreach ($removeGalleryPaths as $path) {
                 if (in_array($path, $existingImages)) {
-                    Storage::disk('public')->delete($path);
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($path);
+                    }
                     $existingImages = array_values(array_filter($existingImages, fn ($img) => $img !== $path));
                 }
             }
@@ -481,7 +491,9 @@ class ProductController extends Controller
         // Handle gallery images (append to existing list)
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $file) {
-                $existingImages[] = $file->store('products/gallery', 'public');
+                if ($file && $file->isValid()) {
+                    $existingImages[] = $file->store('products/gallery', 'public');
+                }
             }
         }
         if (isset($existingImages)) {
@@ -490,15 +502,17 @@ class ProductController extends Controller
 
         // Handle remove_video
         if ($request->filled('remove_video') && $request->remove_video == '1') {
-            if ($product->video) {
+            if ($product->video && Storage::disk('public')->exists($product->video)) {
                 Storage::disk('public')->delete($product->video);
-                $validated['video'] = null;
             }
-        } elseif ($request->hasFile('video')) {
-            if ($product->video) {
+            $validated['video'] = null;
+        } elseif ($request->hasFile('video') && $request->file('video')->isValid()) {
+            if ($product->video && Storage::disk('public')->exists($product->video)) {
                 Storage::disk('public')->delete($product->video);
             }
             $validated['video'] = $request->file('video')->store('products/videos', 'public');
+        } else {
+            unset($validated['video']);
         }
 
         $product->update($validated);

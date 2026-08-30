@@ -68,18 +68,6 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
-            'hero_image' => 'nullable|image|max:5120',
-            'hero_text' => 'nullable|string|max:255',
-            'hero_button_text' => 'nullable|string|max:100',
-            'banner_images' => 'nullable|array|max:3',
-            'banner_images.*' => 'nullable|image|max:2048',
-            'banner_texts' => 'nullable|array|max:3',
-            'banner_texts.*' => 'nullable|string|max:255',
-            'bottom_banner_image' => 'nullable|image|max:5120',
-            'bottom_banner_text' => 'nullable|string|max:255',
-            'testimonial_text' => 'nullable|string|max:1000',
-            'additional_banner_image' => 'nullable|image|max:5120',
-            'additional_banner_text' => 'nullable|string|max:255',
             'parent_id' => [
                 'nullable',
                 Rule::exists('categories', 'id')->where(function ($q) {
@@ -116,39 +104,6 @@ class CategoryController extends Controller
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('categories', 'public');
-        }
-
-        // Handle hero image
-        if ($request->hasFile('hero_image')) {
-            $validated['hero_image'] = $request->file('hero_image')->store('categories/hero', 'public');
-        }
-
-        // Handle banner images
-        $bannerImagePaths = [];
-        if ($request->hasFile('banner_images')) {
-            foreach ($request->file('banner_images') as $file) {
-                if ($file) {
-                    $bannerImagePaths[] = $file->store('categories/banners', 'public');
-                }
-            }
-        }
-        if (! empty($bannerImagePaths)) {
-            $validated['banner_images'] = $bannerImagePaths;
-        }
-
-        // Handle banner texts
-        if ($request->has('banner_texts')) {
-            $validated['banner_texts'] = array_values(array_filter($request->input('banner_texts', [])));
-        }
-
-        // Handle bottom banner image
-        if ($request->hasFile('bottom_banner_image')) {
-            $validated['bottom_banner_image'] = $request->file('bottom_banner_image')->store('categories/bottom-banner', 'public');
-        }
-
-        // Handle additional banner image
-        if ($request->hasFile('additional_banner_image')) {
-            $validated['additional_banner_image'] = $request->file('additional_banner_image')->store('categories/additional-banner', 'public');
         }
 
         Category::create($validated);
@@ -193,22 +148,6 @@ class CategoryController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'remove_image' => 'nullable|boolean',
-            'hero_image' => 'nullable|image|max:5120',
-            'remove_hero_image' => 'nullable|boolean',
-            'hero_text' => 'nullable|string|max:255',
-            'hero_button_text' => 'nullable|string|max:100',
-            'banner_images' => 'nullable|array|max:3',
-            'banner_images.*' => 'nullable|image|max:2048',
-            'remove_banner_image' => 'nullable|array',
-            'banner_texts' => 'nullable|array|max:3',
-            'banner_texts.*' => 'nullable|string|max:255',
-            'bottom_banner_image' => 'nullable|image|max:5120',
-            'remove_bottom_banner_image' => 'nullable|boolean',
-            'bottom_banner_text' => 'nullable|string|max:255',
-            'testimonial_text' => 'nullable|string|max:1000',
-            'additional_banner_image' => 'nullable|image|max:5120',
-            'remove_additional_banner_image' => 'nullable|boolean',
-            'additional_banner_text' => 'nullable|string|max:255',
             'parent_id' => [
                 'nullable',
                 Rule::exists('categories', 'id')->where(function ($q) use ($category) {
@@ -275,89 +214,7 @@ class CategoryController extends Controller
             $validated['image'] = $request->file('image')->store('categories', 'public');
         }
 
-        // Handle hero image
-        if ($request->filled('remove_hero_image') && $request->remove_hero_image == '1') {
-            if ($category->hero_image) {
-                Storage::disk('public')->delete($category->hero_image);
-            }
-            $validated['hero_image'] = null;
-        } elseif ($request->hasFile('hero_image')) {
-            if ($category->hero_image) {
-                Storage::disk('public')->delete($category->hero_image);
-            }
-            $validated['hero_image'] = $request->file('hero_image')->store('categories/hero', 'public');
-        }
-
-        // Handle banner images
-        $existingBannerImages = is_array($category->banner_images) ? $category->banner_images : [];
-        $removeBannerImages = $request->input('remove_banner_image', []);
-
-        if ($request->hasFile('banner_images')) {
-            $newBannerPaths = [];
-            foreach ($request->file('banner_images') as $index => $file) {
-                if ($file) {
-                    // Delete old image if exists at this index
-                    if (isset($existingBannerImages[$index])) {
-                        Storage::disk('public')->delete($existingBannerImages[$index]);
-                    }
-                    $newBannerPaths[$index] = $file->store('categories/banners', 'public');
-                } elseif (isset($existingBannerImages[$index]) && ! isset($removeBannerImages[$index])) {
-                    // Keep existing image if not removed
-                    $newBannerPaths[$index] = $existingBannerImages[$index];
-                }
-            }
-            // Remove images marked for deletion
-            foreach ($removeBannerImages as $index => $remove) {
-                if ($remove == '1' && isset($existingBannerImages[$index])) {
-                    Storage::disk('public')->delete($existingBannerImages[$index]);
-                    unset($newBannerPaths[$index]);
-                }
-            }
-            $validated['banner_images'] = ! empty($newBannerPaths) ? array_values($newBannerPaths) : null;
-        } else {
-            // Handle removal only
-            foreach ($removeBannerImages as $index => $remove) {
-                if ($remove == '1' && isset($existingBannerImages[$index])) {
-                    Storage::disk('public')->delete($existingBannerImages[$index]);
-                    unset($existingBannerImages[$index]);
-                }
-            }
-            $validated['banner_images'] = ! empty($existingBannerImages) ? array_values($existingBannerImages) : null;
-        }
-
-        // Handle banner texts
-        if ($request->has('banner_texts')) {
-            $validated['banner_texts'] = array_values(array_filter($request->input('banner_texts', [])));
-        }
-
-        // Handle bottom banner image
-        if ($request->filled('remove_bottom_banner_image') && $request->remove_bottom_banner_image == '1') {
-            if ($category->bottom_banner_image) {
-                Storage::disk('public')->delete($category->bottom_banner_image);
-            }
-            $validated['bottom_banner_image'] = null;
-        } elseif ($request->hasFile('bottom_banner_image')) {
-            if ($category->bottom_banner_image) {
-                Storage::disk('public')->delete($category->bottom_banner_image);
-            }
-            $validated['bottom_banner_image'] = $request->file('bottom_banner_image')->store('categories/bottom-banner', 'public');
-        }
-
-        // Handle additional banner image
-        if ($request->filled('remove_additional_banner_image') && $request->remove_additional_banner_image == '1') {
-            if ($category->additional_banner_image) {
-                Storage::disk('public')->delete($category->additional_banner_image);
-            }
-            $validated['additional_banner_image'] = null;
-        } elseif ($request->hasFile('additional_banner_image')) {
-            if ($category->additional_banner_image) {
-                Storage::disk('public')->delete($category->additional_banner_image);
-            }
-            $validated['additional_banner_image'] = $request->file('additional_banner_image')->store('categories/additional-banner', 'public');
-        }
-
-        // Remove remove flags from validated
-        unset($validated['remove_image'], $validated['remove_hero_image'], $validated['remove_bottom_banner_image'], $validated['remove_additional_banner_image'], $validated['remove_banner_image']);
+        unset($validated['remove_image']);
 
         $category->update($validated);
 

@@ -251,17 +251,35 @@
 
                         <div class="col-md-6 mb-3">
                             <label for="image" class="form-label">Product Image</label>
-                            @if($product->resolveMainImagePath())
+                            @php
+                                $hasCustomImage = !empty($product->image) && \App\Models\Product::isAcceptableImageSource($product->image);
+                            @endphp
+                            @if($hasCustomImage)
                                 <div class="mb-2 position-relative d-inline-block">
-                                    <img src="{{ $product->image_url }}"
+                                    <img src="{{ storage_asset($product->image) ?: $product->image_url }}"
                                          alt="{{ $product->name }}" 
                                          id="currentProductImage"
-                                         style="max-width: 150px; max-height: 150px; border-radius: 4px;">
+                                         style="max-width: 150px; max-height: 150px; border-radius: 4px; border: 1px solid #ddd;">
                                     <input type="hidden" name="remove_image" value="0" id="removeImageInput">
-                                    <button type="button" class="btn btn-sm btn-outline-danger mt-1" id="removeImageBtn" onclick="toggleRemoveImage()">
-                                        <i class="bi bi-trash me-1"></i>Remove Image
-                                    </button>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger mt-1" id="removeImageBtn" onclick="toggleRemoveImage()">
+                                            <i class="bi bi-trash me-1"></i>Remove Image
+                                        </button>
+                                    </div>
                                 </div>
+                            @elseif($product->category && $product->category->image)
+                                <div class="mb-2 position-relative d-inline-block">
+                                    <img src="{{ storage_asset($product->category->image) }}"
+                                         alt="Category Image" 
+                                         id="currentProductImage"
+                                         style="max-width: 150px; max-height: 150px; border-radius: 4px; opacity: 0.85; border: 1px dashed #0d6efd;">
+                                    <input type="hidden" name="remove_image" value="0" id="removeImageInput">
+                                    <div class="mt-1">
+                                        <span class="badge bg-info text-dark"><i class="bi bi-info-circle me-1"></i>Using Category Image ({{ $product->category->name }})</span>
+                                    </div>
+                                </div>
+                            @else
+                                <input type="hidden" name="remove_image" value="0" id="removeImageInput">
                             @endif
                             <input type="file" 
                                    class="form-control @error('image') is-invalid @enderror" 
@@ -272,7 +290,7 @@
                             @error('image')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">Leave empty to keep current image. Recommended size: 800x800px. Max size: 2MB</small>
+                            <small class="form-text text-muted">Upload a custom image (max 2MB). If empty, category image is used.</small>
                             <div id="imagePreview" class="mt-2" style="display: none;">
                                 <img id="previewImg" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                             </div>
@@ -297,9 +315,10 @@
                                 <input type="file"
                                        class="form-control @error('gallery_images') is-invalid @enderror @error('gallery_images.*') is-invalid @enderror"
                                        id="gallery_image_single"
+                                       multiple
                                        accept="image/*">
-                                <button type="button" class="btn btn-sm btn-success" id="add-gallery-image-btn">
-                                    <i class="bi bi-plus me-1"></i>Add Image
+                                <button type="button" class="btn btn-sm btn-success text-nowrap" id="add-gallery-image-btn">
+                                    <i class="bi bi-plus me-1"></i>Add Images
                                 </button>
                             </div>
                             <input type="file" name="gallery_images[]" id="gallery_images_hidden" multiple accept="image/*" style="display: none;">
@@ -309,7 +328,7 @@
                             @error('gallery_images.*')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">Click "Add Image" to upload images one by one. Click × on thumbnails to remove.</small>
+                            <small class="form-text text-muted">Select one or multiple images to add to gallery. Click × on thumbnails to remove.</small>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="video" class="form-label">Product Video</label>
@@ -475,28 +494,29 @@
                 gallerySingleInput.click();
             });
             gallerySingleInput.addEventListener('change', function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    var file = e.target.files[0];
-                    var reader = new FileReader();
-                    reader.onload = function(event) {
-                        var div = document.createElement('div');
-                        div.className = 'position-relative d-inline-block gallery-thumb-wrap';
-                        div.innerHTML = '<img src="' + event.target.result + '" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 2px solid #e2e8f0;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle remove-new-gallery-btn" style="width: 24px; height: 24px; padding: 0; font-size: 12px;"><i class="bi bi-x"></i></button>';
-                        div.querySelector('.remove-new-gallery-btn').addEventListener('click', function() {
+                if (e.target.files && e.target.files.length > 0) {
+                    Array.from(e.target.files).forEach(function(file) {
+                        var reader = new FileReader();
+                        reader.onload = function(event) {
+                            var div = document.createElement('div');
+                            div.className = 'position-relative d-inline-block gallery-thumb-wrap';
+                            div.innerHTML = '<img src="' + event.target.result + '" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 2px solid #e2e8f0;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle remove-new-gallery-btn" style="width: 24px; height: 24px; padding: 0; font-size: 12px;"><i class="bi bi-x"></i></button>';
+                            div.querySelector('.remove-new-gallery-btn').addEventListener('click', function() {
+                                var dataTransfer = new DataTransfer();
+                                fileList = fileList.filter(function(f) { return f !== file; });
+                                fileList.forEach(function(f) { dataTransfer.items.add(f); });
+                                galleryHiddenInput.files = dataTransfer.files;
+                                div.remove();
+                            });
+                            newGalleryContainer.appendChild(div);
+                            fileList.push(file);
                             var dataTransfer = new DataTransfer();
-                            fileList = fileList.filter(function(f) { return f !== file; });
                             fileList.forEach(function(f) { dataTransfer.items.add(f); });
                             galleryHiddenInput.files = dataTransfer.files;
-                            div.remove();
-                        });
-                        newGalleryContainer.appendChild(div);
-                        fileList.push(file);
-                        var dataTransfer = new DataTransfer();
-                        fileList.forEach(function(f) { dataTransfer.items.add(f); });
-                        galleryHiddenInput.files = dataTransfer.files;
-                        gallerySingleInput.value = '';
-                    };
-                    reader.readAsDataURL(file);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                    gallerySingleInput.value = '';
                 }
             });
         }
@@ -504,6 +524,8 @@
     function previewImage(input) {
         const preview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
+        const removeInput = document.getElementById('removeImageInput');
+        if (removeInput) removeInput.value = '0';
         
         if (input.files && input.files[0]) {
             const reader = new FileReader();

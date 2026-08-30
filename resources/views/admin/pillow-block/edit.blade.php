@@ -200,9 +200,12 @@
                                 <!-- Featured Image -->
                                 <div class="col-md-6 mb-3 mb-md-0">
                                     <label for="image" class="form-label">Featured Image</label>
-                                    @if($pillowBlock->image)
+                                    @php
+                                        $hasCustomImage = !empty($pillowBlock->image) && \App\Models\PillowBlock::isAcceptableImageSource($pillowBlock->image);
+                                    @endphp
+                                    @if($hasCustomImage)
                                         <div class="mb-2 position-relative d-inline-block d-block">
-                                            <img src="{{ $pillowBlock->image_url }}"
+                                            <img src="{{ storage_asset($pillowBlock->image) ?: $pillowBlock->image_url }}"
                                                  alt="{{ $pillowBlock->name }}" 
                                                  id="currentProductImage"
                                                  style="max-width: 150px; max-height: 150px; border-radius: 4px; border: 1px solid #ddd;">
@@ -211,6 +214,19 @@
                                                 <i class="bi bi-trash me-1"></i>Remove Image
                                             </button>
                                         </div>
+                                    @elseif($pillowBlock->category && $pillowBlock->category->image)
+                                        <div class="mb-2 position-relative d-inline-block d-block">
+                                            <img src="{{ storage_asset($pillowBlock->category->image) }}"
+                                                 alt="Category Image" 
+                                                 id="currentProductImage"
+                                                 style="max-width: 150px; max-height: 150px; border-radius: 4px; opacity: 0.85; border: 1px dashed #0d6efd;">
+                                            <input type="hidden" name="remove_image" value="0" id="removeImageInput">
+                                            <div class="mt-1">
+                                                <span class="badge bg-info text-dark"><i class="bi bi-info-circle me-1"></i>Using Category Image ({{ $pillowBlock->category->name }})</span>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <input type="hidden" name="remove_image" value="0" id="removeImageInput">
                                     @endif
                                     <input type="file" 
                                            class="form-control @error('image') is-invalid @enderror" 
@@ -221,7 +237,7 @@
                                     @error('image')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="form-text text-muted font-italic">Recommended size: 800x800px. Max size: 2MB</small>
+                                    <small class="form-text text-muted font-italic">Recommended size: 800x800px. Max size: 2MB. If empty, category image is used.</small>
                                     <div id="imagePreview" class="mt-2" style="display: none;">
                                         <img id="previewImg" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                     </div>

@@ -10,6 +10,41 @@
     }
     $specs = is_array($specs) ? $specs : [];
 
+    $additionalSpecs = [];
+    if (!($product instanceof \App\Models\PillowBlock)) {
+        $structuredKeys = array_flip(array_merge(
+            \App\Models\Product::bearingStructuredSpecKeys(),
+            ['suffix_pairs', 'suffix', 'suffix_name', 'suffix_desc', 'suffix_type']
+        ));
+
+        foreach ($specs as $k => $v) {
+            if (is_string($k) && str_starts_with(strtolower($k), 'suffix_')) {
+                continue;
+            }
+            if (is_string($k) && !isset($structuredKeys[$k])) {
+                if (is_scalar($v)) {
+                    $valStr = trim((string) $v);
+                    $keyStr = trim($k);
+                    if ($keyStr !== '' && $valStr !== '') {
+                        $additionalSpecs[] = [
+                            'key' => $keyStr,
+                            'value' => $valStr,
+                        ];
+                    }
+                }
+            } elseif (is_numeric($k) && is_array($v)) {
+                $keyStr = trim((string) ($v['key'] ?? $v['title'] ?? ''));
+                $valStr = trim((string) ($v['value'] ?? ''));
+                if ($keyStr !== '' && $valStr !== '') {
+                    $additionalSpecs[] = [
+                        'key' => $keyStr,
+                        'value' => $valStr,
+                    ];
+                }
+            }
+        }
+    }
+
     $equivRows = [];
     foreach (['equiv_skf' => 'SKF', 'equiv_fag' => 'FAG', 'equiv_ntn' => 'NTN', 'equiv_timken' => 'Timken'] as $key => $brand) {
         if ($product instanceof \App\Models\PillowBlock) {
@@ -439,7 +474,55 @@
     <div class="featured-product underwear filter-product-img md:py-20 py-14">
         <div class="container flex justify-between gap-y-6 flex-wrap md:items-start">
             <div class="list-img w-full md:w-5/12 md:pr-8 lg:pr-10 flex-shrink-0">
-                <img class="object-contain object-center duration-700" src="{{ $product->image_url }}" alt="{{ $product->name }}">
+                @php
+                    $allGalleryImages = [];
+                    // 1. Product's own primary image
+                    if (!empty($product->image) && \App\Models\Product::isAcceptableImageSource($product->image)) {
+                        $allGalleryImages[] = \App\Models\Product::publicUrlForPath($product->image);
+                    }
+                    // 2. Gallery images
+                    if ($product instanceof \App\Models\PillowBlock) {
+                        if ($product->relationLoaded('galleryImages') || method_exists($product, 'galleryImages')) {
+                            foreach ($product->galleryImages ?? [] as $gItem) {
+                                $gPath = is_object($gItem) ? $gItem->image_path : $gItem;
+                                if (\App\Models\PillowBlock::isAcceptableImageSource($gPath)) {
+                                    $allGalleryImages[] = \App\Models\PillowBlock::publicUrlForPath($gPath);
+                                }
+                            }
+                        }
+                    } else {
+                        if (is_array($product->images)) {
+                            foreach ($product->images as $gPath) {
+                                if (\App\Models\Product::isAcceptableImageSource($gPath)) {
+                                    $allGalleryImages[] = \App\Models\Product::publicUrlForPath($gPath);
+                                }
+                            }
+                        }
+                    }
+                    // Remove duplicate URLs
+                    $allGalleryImages = array_values(array_unique(array_filter($allGalleryImages)));
+                    
+                    // 3. If empty, fallback to resolved image_url (category image or default placeholder)
+                    if (empty($allGalleryImages)) {
+                        $allGalleryImages[] = $product->image_url;
+                    }
+                @endphp
+
+                <img id="edx-main-product-img" class="object-contain object-center duration-700 w-full" src="{{ $allGalleryImages[0] }}" alt="{{ $product->name }}">
+
+                @if(count($allGalleryImages) > 1)
+                    <div class="gallery-thumbs-row flex items-center gap-3 mt-4 flex-wrap">
+                        @foreach($allGalleryImages as $idx => $thumbUrl)
+                            <button type="button" 
+                                    class="edx-gallery-thumb-btn border-2 rounded-xl p-1 bg-white cursor-pointer transition-all duration-200 overflow-hidden {{ $idx === 0 ? 'border-red-600 ring-2 ring-red-500/20' : 'border-slate-200 hover:border-slate-400 opacity-75 hover:opacity-100' }}"
+                                    style="width: 72px; height: 72px;"
+                                    onclick="edxSwitchProductImage('{{ $thumbUrl }}', this)"
+                                    aria-label="Product thumbnail {{ $idx + 1 }}">
+                                <img src="{{ $thumbUrl }}" alt="{{ $product->name }}" class="w-full h-full object-contain">
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
             </div>
             <div class="product-item product-infor w-full md:w-7/12 md:pl-6 lg:pl-8" data-item="{{ $product->id }}">
                 <div class="product-name heading4 mt-1">{{ $product->sku }}</div>
@@ -612,9 +695,9 @@
                                 </table>
                             </div>
                         </section>
-                        <section class="edx-spec-block min-w-0 md:col-span-2" aria-labelledby="spec-props">
+                        <section class="edx-spec-block min-w-0" aria-labelledby="spec-props">
                             <h2 id="spec-props" class="edx-spec-block__title">Properties</h2>
-                            <div class="edx-spec-block__table max-w-4xl">
+                            <div class="edx-spec-block__table">
                                 <table class="spec-table">
                                     <tr>
                                         <td>Number of rows</td>
@@ -639,6 +722,21 @@
                                 </table>
                             </div>
                         </section>
+                        @if(!empty($additionalSpecs))
+                        <section class="edx-spec-block min-w-0" aria-labelledby="spec-add">
+                            <h2 id="spec-add" class="edx-spec-block__title">Additional specifications</h2>
+                            <div class="edx-spec-block__table">
+                                <table class="spec-table">
+                                    @foreach($additionalSpecs as $addSpec)
+                                    <tr>
+                                        <td>{{ $addSpec['key'] }}</td>
+                                        <td>{{ $addSpec['value'] }}</td>
+                                    </tr>
+                                    @endforeach
+                                </table>
+                            </div>
+                        </section>
+                        @endif
                     </div>
                     @endif
                 </div>
@@ -810,5 +908,24 @@
         showDescTab(initial.getAttribute('data-item'));
     }
 })();
+
+function edxSwitchProductImage(src, btn) {
+    var mainImg = document.getElementById('edx-main-product-img');
+    if (mainImg) {
+        mainImg.style.opacity = '0.4';
+        setTimeout(function() {
+            mainImg.src = src;
+            mainImg.style.opacity = '1';
+        }, 150);
+    }
+    document.querySelectorAll('.edx-gallery-thumb-btn').forEach(function(b) {
+        b.classList.remove('border-red-600', 'ring-2', 'ring-red-500/20');
+        b.classList.add('border-slate-200', 'opacity-75');
+    });
+    if (btn) {
+        btn.classList.add('border-red-600', 'ring-2', 'ring-red-500/20');
+        btn.classList.remove('border-slate-200', 'opacity-75');
+    }
+}
 </script>
 @endsection

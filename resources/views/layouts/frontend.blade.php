@@ -439,6 +439,160 @@
             box-shadow: none;
         }
 
+        /* Bearing live search suggestions dropdown */
+        .edx-search-suggestions-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.16), 0 4px 10px -2px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e4e4e7;
+            z-index: 9999;
+            overflow: hidden;
+            max-height: min(460px, 75vh);
+            overflow-y: auto;
+            text-align: left;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .edx-suggestion-header {
+            padding: 0.625rem 1rem 0.375rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #71717a;
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .edx-suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.625rem 1rem;
+            border-bottom: 1px solid #f4f4f5;
+            text-decoration: none !important;
+            color: #18181b !important;
+            transition: background-color 0.15s ease;
+            cursor: pointer;
+        }
+
+        .edx-suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .edx-suggestion-item:hover,
+        .edx-suggestion-item.is-selected {
+            background-color: #f4f4f5;
+        }
+
+        .edx-suggestion-thumb {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            border-radius: 0.5rem;
+            border: 1px solid #e4e4e7;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .edx-suggestion-thumb img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .edx-suggestion-info {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .edx-suggestion-sku {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #c8102e;
+            line-height: 1.25;
+        }
+
+        .edx-suggestion-name {
+            font-size: 0.8125rem;
+            color: #3f3f46;
+            line-height: 1.35;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .edx-suggestion-meta {
+            font-size: 0.6875rem;
+            color: #71717a;
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+
+        .edx-suggestion-arrow {
+            flex-shrink: 0;
+            color: #a1a1aa;
+            font-size: 1rem;
+        }
+
+        .edx-suggestion-category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.625rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #27272a !important;
+            border-bottom: 1px solid #f4f4f5;
+            text-decoration: none !important;
+            transition: background-color 0.15s ease;
+        }
+
+        .edx-suggestion-category-item:hover,
+        .edx-suggestion-category-item.is-selected {
+            background-color: #f4f4f5;
+            color: #c8102e !important;
+        }
+
+        .edx-suggestion-footer {
+            padding: 0.75rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #c8102e !important;
+            background: #fafafa;
+            border-top: 1px solid #f1f5f9;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+        }
+
+        .edx-suggestion-footer:hover,
+        .edx-suggestion-footer.is-selected {
+            background: #f4f4f5;
+            text-decoration: underline !important;
+        }
+
+        .edx-suggestion-loading,
+        .edx-suggestion-empty {
+            padding: 1.25rem 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #71717a;
+        }
+
         /* Quota list count badge (explicit CSS — Tailwind build does not scan Blade files) */
         .header-menu .list-action,
         .header-menu .quota-bag-link,
@@ -674,9 +828,170 @@
             color: #1f1f1f;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
         }
-        #edx-quota-modal button.edx-quota-modal-close:focus-visible {
-            outline: 2px solid #ec2127;
-            outline-offset: 2px;
+        /* Search Popup Modal */
+        #edx-search-modal {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 99995;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #edx-search-modal .edx-search-modal-shell {
+            position: relative;
+            min-height: 100%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.25rem 1rem;
+        }
+        @media (min-width: 640px) {
+            #edx-search-modal .edx-search-modal-shell {
+                padding: 3.5rem 1.5rem 2rem;
+            }
+        }
+        #edx-search-modal .edx-search-modal-backdrop {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 0;
+            background: rgba(15, 23, 42, 0.68);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        #edx-search-modal .edx-search-modal-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 44rem;
+            background: #ffffff;
+            border-radius: 1.25rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: edxSearchPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes edxSearchPopIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .edx-search-modal-header {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 0.75rem;
+            background: #ffffff;
+        }
+        .edx-search-modal-input-wrap {
+            display: flex;
+            align-items: center;
+            flex: 1 1 0%;
+            gap: 0.75rem;
+        }
+        .edx-search-modal-input-wrap input {
+            width: 100%;
+            border: none !important;
+            outline: none !important;
+            font-size: 1.0625rem;
+            color: #0f172a;
+            background: transparent;
+            padding: 0.5rem 0;
+            box-shadow: none !important;
+        }
+        .edx-search-modal-input-wrap input::placeholder {
+            color: #94a3b8;
+        }
+        .edx-search-modal-close-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 0.5rem;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .edx-search-modal-close-btn:hover {
+            color: #0f172a;
+            background: #f1f5f9;
+        }
+        .edx-search-modal-clear-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .edx-search-modal-clear-btn:hover {
+            color: #475569;
+        }
+        .edx-search-modal-body {
+            max-height: min(28rem, 65vh);
+            overflow-y: auto;
+            padding: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        .edx-search-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.625rem 1.25rem;
+            background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        .edx-search-modal-footer kbd {
+            display: inline-block;
+            padding: 0.125rem 0.375rem;
+            font-size: 0.6875rem;
+            font-family: inherit;
+            font-weight: 600;
+            color: #475569;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+        .edx-search-quick-chip,
+        .edx-search-tag-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.85rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #334155;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            text-decoration: none !important;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .edx-search-quick-chip:hover,
+        .edx-search-tag-chip:hover {
+            color: #c8102e;
+            background: #fee2e2;
+            border-color: #fca5a5;
         }
 
         /* EDX — light polish across all frontend pages */
@@ -817,6 +1132,61 @@
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Popup Modal with Live Suggestions -->
+    <div id="edx-search-modal" class="edx-search-modal-root" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="edx-search-modal-input" aria-hidden="true">
+        <div class="edx-search-modal-shell">
+            <div class="edx-search-modal-backdrop" data-search-modal-close tabindex="-1" aria-hidden="true"></div>
+            <div class="edx-search-modal-card">
+                <form action="{{ route('frontend.range') }}" method="get" class="edx-search-modal-form m-0" id="edx-search-modal-form" role="search" aria-label="Search catalogue">
+                    <div class="edx-search-modal-header">
+                        <div class="edx-search-modal-input-wrap">
+                            <i class="ph-bold ph-magnifying-glass text-xl text-stone-400 shrink-0" aria-hidden="true"></i>
+                            <input type="search" id="edx-search-modal-input" name="search" placeholder="Search bearings, SKU, dimensions (e.g. 6200, UCFL)..." autocomplete="off" />
+                            <button type="button" id="edx-search-modal-clear" class="edx-search-modal-clear-btn" style="display: none;" title="Clear input" aria-label="Clear search query">
+                                <i class="ph ph-x-circle text-lg" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="edx-search-modal-close-btn" data-search-modal-close title="Close (Esc)" aria-label="Close search">
+                            <i class="ph ph-x text-lg" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="edx-search-modal-body" id="edx-search-modal-results">
+                        <div class="edx-search-modal-initial p-4 sm:p-5">
+                            <div class="mb-4">
+                                <div class="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">Popular Categories</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="{{ route('frontend.range', ['category' => 'deep-groove-ball-bearings']) }}" class="edx-search-quick-chip">Deep Groove Ball Bearings</a>
+                                    <a href="{{ route('frontend.range', ['category' => 'angular-contact-ball-bearings']) }}" class="edx-search-quick-chip">Angular Contact Bearings</a>
+                                    <a href="{{ route('frontend.range', ['category' => 'spherical-roller-bearings']) }}" class="edx-search-quick-chip">Spherical Roller Bearings</a>
+                                    <a href="{{ route('frontend.range', ['category' => 'pillow-block-units']) }}" class="edx-search-quick-chip">Pillow Blocks</a>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">Popular Searches</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" class="edx-search-tag-chip" data-fill-search="6200">6200</button>
+                                    <button type="button" class="edx-search-tag-chip" data-fill-search="6305">6305</button>
+                                    <button type="button" class="edx-search-tag-chip" data-fill-search="16001">16001</button>
+                                    <button type="button" class="edx-search-tag-chip" data-fill-search="UCFL">UCFL</button>
+                                    <button type="button" class="edx-search-tag-chip" data-fill-search="2RS">2RS</button>
+                                    <button type="button" class="edx-search-tag-chip" data-fill-search="C3">C3</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="edx-search-modal-footer">
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center gap-1"><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+                            <span class="flex items-center gap-1"><kbd>↵</kbd> Select</span>
+                            <span class="flex items-center gap-1"><kbd>ESC</kbd> Close</span>
+                        </div>
+                        <div class="text-xs text-stone-400 font-medium">EDX Bearings</div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1175,6 +1545,471 @@
         } else {
             focusCatalogSearch();
         }
+    })();
+    </script>
+    
+    <script>
+    (function () {
+        var suggestionApiUrl = '{{ route('frontend.search.suggestions') }}';
+        var debounceTimer = null;
+        var currentAbortCtrl = null;
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        function initAutocomplete(form) {
+            var input = form.querySelector('input[name="search"]');
+            var dropdown = form.querySelector('.edx-search-suggestions-dropdown');
+            
+            if (!input) return;
+            
+            if (!dropdown) {
+                dropdown = document.createElement('div');
+                dropdown.className = 'edx-search-suggestions-dropdown';
+                dropdown.style.display = 'none';
+                form.appendChild(dropdown);
+            }
+
+            var selectedIndex = -1;
+
+            function closeDropdown() {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+                selectedIndex = -1;
+            }
+
+            function highlightIndex(index) {
+                var items = dropdown.querySelectorAll('.edx-navigable-item');
+                if (!items.length) return;
+                
+                items.forEach(function (el) { el.classList.remove('is-selected'); });
+                
+                if (index >= 0 && index < items.length) {
+                    selectedIndex = index;
+                    items[selectedIndex].classList.add('is-selected');
+                    items[selectedIndex].scrollIntoView({ block: 'nearest' });
+                } else {
+                    selectedIndex = -1;
+                }
+            }
+
+            function renderResults(data, query) {
+                if (!data || ((!data.products || !data.products.length) && (!data.categories || !data.categories.length))) {
+                    dropdown.innerHTML = 
+                        '<div class="edx-suggestion-empty">' +
+                            '<i class="ph ph-magnifying-glass text-xl mb-1 block opacity-60"></i>' +
+                            '<div>No bearings found for <strong>"' + escapeHtml(query) + '"</strong></div>' +
+                            '<div class="caption2 text-secondary mt-1">Press Enter to search entire catalog</div>' +
+                        '</div>';
+                    dropdown.style.display = 'block';
+                    selectedIndex = -1;
+                    return;
+                }
+
+                var html = '';
+
+                // Categories
+                if (data.categories && data.categories.length > 0) {
+                    html += '<div class="edx-suggestion-header">Categories</div>';
+                    data.categories.forEach(function (cat) {
+                        html += '<a href="' + escapeHtml(cat.url) + '" class="edx-suggestion-category-item edx-navigable-item">' +
+                            '<span class="flex items-center gap-2"><i class="ph ph-folder text-sm opacity-60"></i> ' + escapeHtml(cat.name) + '</span>' +
+                            '<i class="ph ph-caret-right text-xs opacity-50"></i>' +
+                        '</a>';
+                    });
+                }
+
+                // Products
+                if (data.products && data.products.length > 0) {
+                    html += '<div class="edx-suggestion-header">Bearings & Products</div>';
+                    data.products.forEach(function (p) {
+                        var thumb = p.image_url 
+                            ? '<img src="' + escapeHtml(p.image_url) + '" alt="' + escapeHtml(p.name) + '" loading="lazy">' 
+                            : '<i class="ph ph-package text-xl opacity-40"></i>';
+                        
+                        var cleanName = p.display_name || p.name || '';
+                        var skuVal = p.sku ? String(p.sku).trim() : '';
+                        if (skuVal && cleanName.endsWith(skuVal)) {
+                            cleanName = cleanName.substring(0, cleanName.length - skuVal.length).trim();
+                        }
+
+                        var metaText = '';
+                        if (p.dimensions) {
+                            metaText = escapeHtml(p.dimensions);
+                        } else if (p.category) {
+                            metaText = escapeHtml(p.category);
+                        }
+
+                        html += '<a href="' + escapeHtml(p.url) + '" class="edx-suggestion-item edx-navigable-item">' +
+                            '<div class="edx-suggestion-thumb">' + thumb + '</div>' +
+                            '<div class="edx-suggestion-info">' +
+                                '<div class="edx-suggestion-sku">' + escapeHtml(skuVal || cleanName) + '</div>' +
+                                (cleanName ? '<div class="edx-suggestion-name">' + escapeHtml(cleanName) + '</div>' : '') +
+                                (metaText ? '<div class="edx-suggestion-meta">' + metaText + '</div>' : '') +
+                            '</div>' +
+                            '<div class="edx-suggestion-arrow"><i class="ph ph-arrow-right"></i></div>' +
+                        '</a>';
+                    });
+                }
+
+                // Footer / View all
+                var searchRangeUrl = '{{ route('frontend.range') }}?search=' + encodeURIComponent(query);
+                html += '<a href="' + searchRangeUrl + '" class="edx-suggestion-footer edx-navigable-item">' +
+                    '<i class="ph ph-magnifying-glass"></i>' +
+                    '<span>View all results for <strong>"' + escapeHtml(query) + '"</strong></span>' +
+                '</a>';
+
+                dropdown.innerHTML = html;
+                dropdown.style.display = 'block';
+                selectedIndex = -1;
+            }
+
+            function fetchSuggestions(query) {
+                if (currentAbortCtrl) {
+                    currentAbortCtrl.abort();
+                }
+                currentAbortCtrl = new AbortController();
+
+                dropdown.innerHTML = 
+                    '<div class="edx-suggestion-loading">' +
+                        '<i class="ph ph-spinner animate-spin text-xl mb-1 inline-block text-red-600"></i>' +
+                        '<div class="caption1 text-secondary">Searching bearings...</div>' +
+                    '</div>';
+                dropdown.style.display = 'block';
+
+                fetch(suggestionApiUrl + '?q=' + encodeURIComponent(query), {
+                    signal: currentAbortCtrl.signal,
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    renderResults(data, query);
+                })
+                .catch(function (err) {
+                    if (err && err.name === 'AbortError') return;
+                    dropdown.innerHTML = '<div class="edx-suggestion-empty text-red-600">Could not load suggestions.</div>';
+                });
+            }
+
+            input.addEventListener('input', function () {
+                var q = input.value.trim();
+                clearTimeout(debounceTimer);
+                if (q.length < 1) {
+                    closeDropdown();
+                    return;
+                }
+                debounceTimer = setTimeout(function () {
+                    fetchSuggestions(q);
+                }, 200);
+            });
+
+            input.addEventListener('focus', function () {
+                var q = input.value.trim();
+                if (q.length >= 1 && dropdown.children.length > 0) {
+                    dropdown.style.display = 'block';
+                } else if (q.length >= 1) {
+                    fetchSuggestions(q);
+                }
+            });
+
+            input.addEventListener('keydown', function (e) {
+                var items = dropdown.querySelectorAll('.edx-navigable-item');
+                if (dropdown.style.display === 'none' || !items.length) {
+                    return;
+                }
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    var next = selectedIndex + 1;
+                    if (next >= items.length) next = 0;
+                    highlightIndex(next);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    var prev = selectedIndex - 1;
+                    if (prev < 0) prev = items.length - 1;
+                    highlightIndex(prev);
+                } else if (e.key === 'Enter') {
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        e.preventDefault();
+                        items[selectedIndex].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeDropdown();
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!form.contains(e.target)) {
+                    closeDropdown();
+                }
+            });
+        }
+
+        // Search Modal Controller
+        (function () {
+            var searchModal = document.getElementById('edx-search-modal');
+            var searchInput = document.getElementById('edx-search-modal-input');
+            var searchResults = document.getElementById('edx-search-modal-results');
+            var searchClearBtn = document.getElementById('edx-search-modal-clear');
+            var initialHtml = searchResults ? searchResults.innerHTML : '';
+            var suggestionApiUrl = '{{ route('frontend.search.suggestions') }}';
+            var searchRangeUrl = '{{ route('frontend.range') }}';
+            var debounceTimer = null;
+            var currentAbortCtrl = null;
+            var selectedIndex = -1;
+
+            if (!searchModal || !searchInput || !searchResults) {
+                return;
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                var div = document.createElement('div');
+                div.textContent = String(str);
+                return div.innerHTML;
+            }
+
+            function openSearchModal(initialQuery) {
+                searchModal.style.display = 'block';
+                searchModal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                if (typeof initialQuery === 'string') {
+                    searchInput.value = initialQuery;
+                }
+                setTimeout(function () {
+                    searchInput.focus();
+                    if (searchInput.value) {
+                        searchInput.select();
+                        triggerSearch(searchInput.value.trim());
+                    }
+                }, 50);
+            }
+
+            function closeSearchModal() {
+                searchModal.style.display = 'none';
+                searchModal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                if (currentAbortCtrl) {
+                    currentAbortCtrl.abort();
+                }
+            }
+
+            function highlightIndex(index) {
+                var items = searchResults.querySelectorAll('.edx-navigable-item');
+                if (!items.length) return;
+                items.forEach(function (el) { el.classList.remove('is-selected'); });
+                if (index >= 0 && index < items.length) {
+                    selectedIndex = index;
+                    items[selectedIndex].classList.add('is-selected');
+                    items[selectedIndex].scrollIntoView({ block: 'nearest' });
+                } else {
+                    selectedIndex = -1;
+                }
+            }
+
+            function renderModalResults(data, query) {
+                if (!data || ((!data.products || !data.products.length) && (!data.categories || !data.categories.length))) {
+                    searchResults.innerHTML = 
+                        '<div class="edx-suggestion-empty p-8 text-center">' +
+                            '<i class="ph ph-magnifying-glass text-3xl mb-2 block opacity-40"></i>' +
+                            '<div class="font-medium text-stone-800">No bearings found for <strong>"' + escapeHtml(query) + '"</strong></div>' +
+                            '<div class="text-xs text-stone-500 mt-1">Press Enter to search entire catalog</div>' +
+                        '</div>';
+                    selectedIndex = -1;
+                    return;
+                }
+
+                var html = '';
+
+                // Categories
+                if (data.categories && data.categories.length > 0) {
+                    html += '<div class="edx-suggestion-header">Categories</div>';
+                    data.categories.forEach(function (cat) {
+                        html += '<a href="' + escapeHtml(cat.url) + '" class="edx-suggestion-category-item edx-navigable-item">' +
+                            '<span class="flex items-center gap-2"><i class="ph ph-folder text-sm opacity-60"></i> ' + escapeHtml(cat.name) + '</span>' +
+                            '<i class="ph ph-caret-right text-xs opacity-50"></i>' +
+                        '</a>';
+                    });
+                }
+
+                // Products
+                if (data.products && data.products.length > 0) {
+                    html += '<div class="edx-suggestion-header">Bearings &amp; Products</div>';
+                    data.products.forEach(function (p) {
+                        var thumb = p.image_url 
+                            ? '<img src="' + escapeHtml(p.image_url) + '" alt="' + escapeHtml(p.name) + '" loading="lazy">' 
+                            : '<i class="ph ph-package text-xl opacity-40"></i>';
+                        
+                        var cleanName = p.display_name || p.name || '';
+                        var skuVal = p.sku ? String(p.sku).trim() : '';
+                        if (skuVal && cleanName.endsWith(skuVal)) {
+                            cleanName = cleanName.substring(0, cleanName.length - skuVal.length).trim();
+                        }
+
+                        var metaText = '';
+                        if (p.dimensions) {
+                            metaText = escapeHtml(p.dimensions);
+                        } else if (p.category) {
+                            metaText = escapeHtml(p.category);
+                        }
+
+                        html += '<a href="' + escapeHtml(p.url) + '" class="edx-suggestion-item edx-navigable-item">' +
+                            '<div class="edx-suggestion-thumb">' + thumb + '</div>' +
+                            '<div class="edx-suggestion-info">' +
+                                '<div class="edx-suggestion-sku">' + escapeHtml(skuVal || cleanName) + '</div>' +
+                                (cleanName ? '<div class="edx-suggestion-name">' + escapeHtml(cleanName) + '</div>' : '') +
+                                (metaText ? '<div class="edx-suggestion-meta">' + metaText + '</div>' : '') +
+                            '</div>' +
+                            '<div class="edx-suggestion-arrow"><i class="ph ph-arrow-right"></i></div>' +
+                        '</a>';
+                    });
+                }
+
+                // Footer / View all
+                var fullSearchUrl = searchRangeUrl + '?search=' + encodeURIComponent(query);
+                html += '<a href="' + fullSearchUrl + '" class="edx-suggestion-footer edx-navigable-item">' +
+                    '<i class="ph ph-magnifying-glass"></i>' +
+                    '<span>View all results for <strong>"' + escapeHtml(query) + '"</strong></span>' +
+                '</a>';
+
+                searchResults.innerHTML = html;
+                selectedIndex = -1;
+            }
+
+            function triggerSearch(query) {
+                if (currentAbortCtrl) {
+                    currentAbortCtrl.abort();
+                }
+                if (!query || query.length < 1) {
+                    searchResults.innerHTML = initialHtml;
+                    if (searchClearBtn) searchClearBtn.style.display = 'none';
+                    return;
+                }
+
+                if (searchClearBtn) {
+                    searchClearBtn.style.display = 'inline-flex';
+                }
+
+                currentAbortCtrl = new AbortController();
+                searchResults.innerHTML = 
+                    '<div class="edx-suggestion-loading p-8 text-center">' +
+                        '<i class="ph ph-spinner animate-spin text-2xl mb-2 inline-block text-red-600"></i>' +
+                        '<div class="text-sm text-stone-500">Searching catalogue...</div>' +
+                    '</div>';
+
+                fetch(suggestionApiUrl + '?q=' + encodeURIComponent(query), {
+                    signal: currentAbortCtrl.signal,
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    renderModalResults(data, query);
+                })
+                .catch(function (err) {
+                    if (err && err.name === 'AbortError') return;
+                    searchResults.innerHTML = '<div class="edx-suggestion-empty text-red-600 p-6 text-center">Could not load search results.</div>';
+                });
+            }
+
+            // Open button listeners
+            document.addEventListener('click', function (e) {
+                var openBtn = e.target.closest('.edx-search-modal-open');
+                if (openBtn) {
+                    e.preventDefault();
+                    openSearchModal();
+                    return;
+                }
+
+                var closeBtn = e.target.closest('[data-search-modal-close]');
+                if (closeBtn) {
+                    e.preventDefault();
+                    closeSearchModal();
+                    return;
+                }
+
+                var tagBtn = e.target.closest('[data-fill-search]');
+                if (tagBtn) {
+                    e.preventDefault();
+                    var val = tagBtn.getAttribute('data-fill-search');
+                    if (val) {
+                        searchInput.value = val;
+                        triggerSearch(val);
+                    }
+                }
+            });
+
+            if (searchClearBtn) {
+                searchClearBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    searchInput.focus();
+                    triggerSearch('');
+                });
+            }
+
+            searchInput.addEventListener('input', function () {
+                var q = searchInput.value.trim();
+                clearTimeout(debounceTimer);
+                if (q.length < 1) {
+                    triggerSearch('');
+                    return;
+                }
+                debounceTimer = setTimeout(function () {
+                    triggerSearch(q);
+                }, 180);
+            });
+
+            searchInput.addEventListener('keydown', function (e) {
+                var items = searchResults.querySelectorAll('.edx-navigable-item');
+                if (e.key === 'ArrowDown' && items.length) {
+                    e.preventDefault();
+                    var next = selectedIndex + 1;
+                    if (next >= items.length) next = 0;
+                    highlightIndex(next);
+                } else if (e.key === 'ArrowUp' && items.length) {
+                    e.preventDefault();
+                    var prev = selectedIndex - 1;
+                    if (prev < 0) prev = items.length - 1;
+                    highlightIndex(prev);
+                } else if (e.key === 'Enter') {
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        e.preventDefault();
+                        items[selectedIndex].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeSearchModal();
+                }
+            });
+
+            // Global shortcut (Cmd+K / Ctrl+K / slash)
+            document.addEventListener('keydown', function (e) {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    if (searchModal.style.display === 'block') {
+                        closeSearchModal();
+                    } else {
+                        openSearchModal();
+                    }
+                } else if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+                    e.preventDefault();
+                    openSearchModal();
+                } else if (e.key === 'Escape' && searchModal.style.display === 'block') {
+                    closeSearchModal();
+                }
+            });
+        })();
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var forms = document.querySelectorAll('[data-bearing-search-form], .edx-search-pill-form, .edx-catalog-search-form');
+            forms.forEach(function (form) {
+                initAutocomplete(form);
+            });
+        });
     })();
     </script>
     

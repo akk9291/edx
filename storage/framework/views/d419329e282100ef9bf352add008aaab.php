@@ -36,8 +36,11 @@
                         </li>
                     </ul>
                 </div>
-                <div class="right flex items-center gap-5 md:gap-6 z-[5] shrink-0">
-                    <div class="list-action flex items-center">
+                <div class="right flex items-center gap-4 md:gap-5 z-[5] shrink-0">
+                    <div class="list-action flex items-center gap-1 md:gap-2">
+                        <button type="button" id="edx-header-search-btn" class="edx-search-modal-open cursor-pointer no-underline text-inherit appearance-none bg-transparent border-0 p-2 flex items-center justify-center text-2xl hover:text-[#ec2127] transition-colors" title="Search catalogue" aria-label="Open search popup" aria-haspopup="dialog" aria-expanded="false" aria-controls="edx-search-modal">
+                            <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
+                        </button>
                         
                         <button type="button" id="edx-header-quota-bag" class="quota-bag-open quota-header-bag max-md:hidden cursor-pointer no-underline text-inherit appearance-none bg-transparent border-0 p-0" title="Quota list" aria-label="Open quotation list" aria-haspopup="dialog" aria-expanded="false" aria-controls="edx-quota-modal">
                             <i class="ph-bold ph-handbag" aria-hidden="true"></i>
@@ -62,9 +65,10 @@
                             <img src="<?php echo e(asset('assets/images/EDX-LOGO-RULMENTI.png')); ?>" alt="EDX Rulmenți" width="160" height="160" class="edx-header-logo--drawer h-9 max-h-9 w-auto object-contain mx-auto">
                         </a>
                     </div>
-                    <form action="<?php echo e(route('frontend.range')); ?>" method="get" class="relative mt-2" role="search" aria-label="Search catalogue">
+                    <form action="<?php echo e(route('frontend.range')); ?>" method="get" class="relative mt-2" role="search" aria-label="Search catalogue" data-bearing-search-form>
                         <i class="ph ph-magnifying-glass text-xl absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true"></i>
-                        <input type="search" name="search" value="<?php echo e(request('search', '')); ?>" placeholder="Search bearings…" class="h-12 rounded-lg border border-line text-sm w-full pl-10 pr-4" autocomplete="off" />
+                        <input type="search" name="search" value="<?php echo e(request('search', '')); ?>" placeholder="Search bearings (e.g. 6200, UCFL)…" class="h-12 rounded-lg border border-line text-sm w-full pl-10 pr-4 edx-autocomplete-input" autocomplete="off" data-bearing-autocomplete="true" />
+                        <div class="edx-search-suggestions-dropdown" style="display: none;"></div>
                     </form>
                     <div class="list-nav mt-6">
                         <ul>
@@ -107,10 +111,10 @@
                 <span class="ph-bold ph-list text-2xl block"></span>
                 <span class="menu_bar-title caption2 font-semibold">Category</span>
             </a>
-            <a href="<?php echo e(route('frontend.range')); ?>#catalog-search" class="menu_bar-link flex flex-col items-center gap-1">
+            <button type="button" class="edx-search-modal-open menu_bar-link flex flex-col items-center gap-1 appearance-none bg-transparent border-0 p-0 w-full cursor-pointer" aria-label="Open search popup" aria-haspopup="dialog" aria-expanded="false" aria-controls="edx-search-modal">
                 <span class="ph-bold ph-magnifying-glass text-2xl block"></span>
                 <span class="menu_bar-title caption2 font-semibold">Search</span>
-            </a>
+            </button>
             <button type="button" id="edx-menu-bar-quota-bag" class="quota-bag-open menu_bar-link flex flex-col items-center gap-1 appearance-none bg-transparent border-0 p-0 w-full cursor-pointer" aria-label="Open quotation list" aria-haspopup="dialog" aria-expanded="false" aria-controls="edx-quota-modal">
                 <div class="quota-bag-inner">
                     <span class="ph-bold ph-handbag text-2xl block" aria-hidden="true"></span>

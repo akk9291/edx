@@ -151,6 +151,42 @@
         }
         $specs = is_array($specs) ? $specs : [];
     }
+
+    $additionalSpecs = [];
+    if (!($product instanceof \App\Models\PillowBlock)) {
+        $structuredKeys = array_flip(array_merge(
+            \App\Models\Product::bearingStructuredSpecKeys(),
+            ['suffix_pairs', 'suffix', 'suffix_name', 'suffix_desc', 'suffix_type']
+        ));
+
+        foreach ($specs as $k => $v) {
+            if (is_string($k) && str_starts_with(strtolower($k), 'suffix_')) {
+                continue;
+            }
+            if (is_string($k) && !isset($structuredKeys[$k])) {
+                if (is_scalar($v)) {
+                    $valStr = trim((string) $v);
+                    $keyStr = trim($k);
+                    if ($keyStr !== '' && $valStr !== '') {
+                        $additionalSpecs[] = [
+                            'key' => $keyStr,
+                            'value' => $valStr,
+                        ];
+                    }
+                }
+            } elseif (is_numeric($k) && is_array($v)) {
+                $keyStr = trim((string) ($v['key'] ?? $v['title'] ?? ''));
+                $valStr = trim((string) ($v['value'] ?? ''));
+                if ($keyStr !== '' && $valStr !== '') {
+                    $additionalSpecs[] = [
+                        'key' => $keyStr,
+                        'value' => $valStr,
+                    ];
+                }
+            }
+        }
+    }
+
     $pdfSiteUrl = rtrim((string) config('app.url'), '/');
     $pdfProductUrl = ($product->slug ?? '') !== ''
         ? $pdfSiteUrl.'/product/'.$product->slug
@@ -266,7 +302,7 @@
         </td>
     </tr>
     <tr>
-        <td colspan="2" style="padding-top: 10px;">
+        <td @if(empty($additionalSpecs)) colspan="2" @endif style="padding-top: 10px;">
             <div class="spec-title">Properties</div>
             <table class="spec-table">
                 <tr><td valign="middle">Number of rows</td><td class="spec-value" valign="middle">{{ $specs['number_of_rows'] ?? '—' }}</td></tr>
@@ -276,6 +312,16 @@
                 <tr><td valign="middle">Tolerance class for dimensions</td><td class="spec-value" valign="middle">{{ $specs['tolerance_class'] ?? '—' }}</td></tr>
             </table>
         </td>
+        @if(!empty($additionalSpecs))
+        <td style="padding-top: 10px;">
+            <div class="spec-title">Additional specifications</div>
+            <table class="spec-table">
+                @foreach($additionalSpecs as $addSpec)
+                <tr><td valign="middle">{{ $addSpec['key'] }}</td><td class="spec-value" valign="middle">{{ $addSpec['value'] }}</td></tr>
+                @endforeach
+            </table>
+        </td>
+        @endif
     </tr>
 </table>
 @endif

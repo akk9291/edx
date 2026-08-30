@@ -353,16 +353,18 @@ class PillowBlockController extends Controller
         }
 
         // Handle featured image removal / upload
-        if ($request->filled('remove_image') && $request->remove_image == '1') {
-            if ($pillowBlock->image) {
-                Storage::disk('public')->delete($pillowBlock->image);
-                $validated['image'] = null;
-            }
-        } elseif ($request->hasFile('image')) {
-            if ($pillowBlock->image) {
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            if ($pillowBlock->image && Storage::disk('public')->exists($pillowBlock->image)) {
                 Storage::disk('public')->delete($pillowBlock->image);
             }
             $validated['image'] = $request->file('image')->store('pillow-blocks', 'public');
+        } elseif ($request->filled('remove_image') && $request->remove_image == '1') {
+            if ($pillowBlock->image && Storage::disk('public')->exists($pillowBlock->image)) {
+                Storage::disk('public')->delete($pillowBlock->image);
+            }
+            $validated['image'] = null;
+        } else {
+            unset($validated['image']);
         }
 
         // Handle video removal / upload
