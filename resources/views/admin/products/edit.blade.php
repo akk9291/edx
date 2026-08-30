@@ -259,6 +259,7 @@
                                     <img src="{{ storage_asset($product->image) ?: $product->image_url }}"
                                          alt="{{ $product->name }}" 
                                          id="currentProductImage"
+                                         onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'"
                                          style="max-width: 150px; max-height: 150px; border-radius: 4px; border: 1px solid #ddd;">
                                     <input type="hidden" name="remove_image" value="0" id="removeImageInput">
                                     <div>
@@ -272,6 +273,7 @@
                                     <img src="{{ storage_asset($product->category->image) }}"
                                          alt="Category Image" 
                                          id="currentProductImage"
+                                         onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'"
                                          style="max-width: 150px; max-height: 150px; border-radius: 4px; opacity: 0.85; border: 1px dashed #0d6efd;">
                                     <input type="hidden" name="remove_image" value="0" id="removeImageInput">
                                     <div class="mt-1">
@@ -301,7 +303,7 @@
                                 @if(is_array($product->images) && count($product->images) > 0)
                                     @foreach($product->images as $idx => $img)
                                         <div class="position-relative d-inline-block gallery-thumb-wrap" data-path="{{ $img }}">
-                                            <img src="{{ storage_asset($img) }}" alt="{{ $product->name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 2px solid #e2e8f0;">
+                                            <img src="{{ storage_asset($img) }}" alt="{{ $product->name }}" onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 2px solid #e2e8f0;">
                                             <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle gallery-remove-btn" style="width: 24px; height: 24px; padding: 0; font-size: 12px; line-height: 1;" data-path="{{ $img }}" title="Remove">
                                                 <i class="bi bi-x"></i>
                                             </button>

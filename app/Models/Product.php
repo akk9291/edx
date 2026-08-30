@@ -340,18 +340,14 @@ class Product extends Model
         $path = ltrim($raw, '/');
 
         if (str_starts_with($path, 'assets/')) {
-            return is_file(public_path($path)) ? asset($path) : $fallback;
-        }
-
-        if (Storage::disk('public')->exists($path)) {
-            return url('storage/'.$path);
-        }
-
-        if (is_file(public_path($path))) {
             return asset($path);
         }
 
-        return $fallback;
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+
+        return asset('storage/'.$path);
     }
 
     /**

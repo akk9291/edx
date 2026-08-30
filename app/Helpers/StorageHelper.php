@@ -19,22 +19,22 @@ if (! function_exists('storage_asset')) {
             return '';
         }
 
+        // 1. Remote URLs (http://, https://, //)
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '//')) {
             return Product::pathLooksLikeRemoteImageUrl($path) ? $path : '';
         }
 
+        // 2. Static public assets (e.g. assets/images/...)
         if (str_starts_with($path, 'assets/')) {
-            return is_file(public_path($path)) ? asset($path) : '';
-        }
-
-        if (Storage::disk('public')->exists($path)) {
-            return url('storage/'.$path);
-        }
-
-        if (is_file(public_path($path))) {
             return asset($path);
         }
 
-        return '';
+        // 3. Path already starting with storage/
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+
+        // 4. Stored on public storage disk (e.g. products/xyz.jpg)
+        return asset('storage/'.$path);
     }
 }

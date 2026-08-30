@@ -281,20 +281,34 @@ Route::prefix('quota-list')->name('frontend.quota-list.')->group(function () {
     Route::post('/submit', [QuotaListController::class, 'submit'])->name('submit');
 });
 
-// Serve storage files via PHP when symlink returns 403
+// Serve storage files via PHP when symlink returns 403 or on shared hosting
 $serveStorage = function (string $path) {
-    $path = preg_replace('#\.\./#', '', $path);
-    if (! Storage::disk('public')->exists($path)) {
-        abort(404);
-    }
-    $fullPath = Storage::disk('public')->path($path);
-    $realPath = realpath($fullPath);
-    $storageRoot = realpath(storage_path('app/public'));
-    if (! $realPath || ! $storageRoot || strpos($realPath, $storageRoot) !== 0) {
-        abort(404);
+    $path = ltrim(preg_replace('#\.\./#', '', $path), '/');
+
+    // 1. storage/app/public/ path
+    $diskPath = storage_path('app/public/'.$path);
+    if (file_exists($diskPath) && is_file($diskPath)) {
+        return response()->file($diskPath);
     }
 
-    return response()->file($realPath);
+    // 2. public/storage/ path
+    $publicStoragePath = public_path('storage/'.$path);
+    if (file_exists($publicStoragePath) && is_file($publicStoragePath)) {
+        return response()->file($publicStoragePath);
+    }
+
+    // 3. Storage public disk
+    if (Storage::disk('public')->exists($path)) {
+        return response()->file(Storage::disk('public')->path($path));
+    }
+
+    // 4. Default fallback image
+    $fallback = public_path('assets/images/PhotoshopExtension_Image-1.webp');
+    if (file_exists($fallback)) {
+        return response()->file($fallback);
+    }
+
+    abort(404);
 };
 Route::get('/storage/{path}', $serveStorage)->where('path', '.*')->name('storage.serve');
 Route::get('/media/{path}', $serveStorage)->where('path', '.*')->name('media.serve');

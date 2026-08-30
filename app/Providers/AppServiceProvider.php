@@ -33,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configurePublicAssetBaseUrl();
+        $this->ensureStorageLink();
 
         // Share alerts count with all views
         view()->composer('admin.layout', function ($view) {
@@ -80,6 +81,27 @@ class AppServiceProvider extends ServiceProvider
 
         if ($forcePublic) {
             config(['app.asset_url' => $appUrl.'/public']);
+        }
+    }
+
+    /**
+     * Auto-heal public storage symlink / directories on deployment.
+     */
+    protected function ensureStorageLink(): void
+    {
+        $publicStorage = public_path('storage');
+        $target = storage_path('app/public');
+
+        if (! is_dir($target)) {
+            @mkdir($target, 0755, true);
+        }
+
+        if (! file_exists($publicStorage) && is_dir($target)) {
+            try {
+                @symlink($target, $publicStorage);
+            } catch (\Throwable $e) {
+                // If symlink cannot be created, web.php fallback route handles it
+            }
         }
     }
 }
