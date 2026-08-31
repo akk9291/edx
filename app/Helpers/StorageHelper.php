@@ -1,12 +1,11 @@
 <?php
 
 use App\Models\Product;
-use Illuminate\Support\Facades\Storage;
 
 if (! function_exists('storage_asset')) {
     /**
      * Public URL for a path on the public disk, or '' if missing.
-     * Uses request-relative /storage/... when the file exists (avoids broken img when APP_URL/host mismatches).
+     * Uses /media/{path} route to serve reliably across all environments (bypassing Hostinger LiteSpeed symlink 403 blocks).
      */
     function storage_asset(?string $path): string
     {
@@ -29,12 +28,14 @@ if (! function_exists('storage_asset')) {
             return asset($path);
         }
 
-        // 3. Path already starting with storage/
+        // 3. Strip leading storage/ or media/ if already present
         if (str_starts_with($path, 'storage/')) {
-            return Storage::disk('public')->url(substr($path, 8));
+            $path = substr($path, 8);
+        } elseif (str_starts_with($path, 'media/')) {
+            $path = substr($path, 6);
         }
 
-        // 4. Stored on public storage disk (e.g. products/xyz.jpg)
-        return Storage::disk('public')->url($path);
+        // 4. Return reliable media route URL
+        return url('/media/'.$path);
     }
 }
