@@ -67,7 +67,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'parent_id' => [
                 'nullable',
                 Rule::exists('categories', 'id')->where(function ($q) {
@@ -79,10 +79,11 @@ class CategoryController extends Controller
                 }),
             ],
             'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        $validated['is_active'] = $request->boolean('is_active');
 
         $bearingsId = MainCategory::bearingsCatalogId();
         if ($bearingsId) {
@@ -102,8 +103,10 @@ class CategoryController extends Controller
             $counter++;
         }
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $validated['image'] = $request->file('image')->store('categories', 'public');
+        } else {
+            unset($validated['image']);
         }
 
         Category::create($validated);
@@ -146,8 +149,8 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'remove_image' => 'nullable|boolean',
+            'image' => 'nullable|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'remove_image' => 'nullable',
             'parent_id' => [
                 'nullable',
                 Rule::exists('categories', 'id')->where(function ($q) use ($category) {
@@ -161,17 +164,20 @@ class CategoryController extends Controller
                 }),
             ],
             'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
+        $validated['is_active'] = $request->boolean('is_active');
+
+        $parentId = $validated['parent_id'] ?? null;
         // Prevent setting itself as parent
-        if ($validated['parent_id'] == $category->id) {
+        if ($parentId && $parentId == $category->id) {
             return back()->withErrors(['parent_id' => 'Category cannot be its own parent.'])->withInput();
         }
 
         // Prevent circular parent: chosen parent must not be a descendant of this category
-        if ($validated['parent_id']) {
-            $parent = Category::find($validated['parent_id']);
+        if ($parentId) {
+            $parent = Category::find($parentId);
             if ($parent && $this->isDescendant($category, $parent)) {
                 return back()->withErrors(['parent_id' => 'Cannot set a descendant as parent.'])->withInput();
             }
@@ -202,15 +208,17 @@ class CategoryController extends Controller
 
         // Handle image upload / removal
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            if ($category->image) {
+            if ($category->image && Storage::disk('public')->exists($category->image)) {
                 Storage::disk('public')->delete($category->image);
             }
             $validated['image'] = $request->file('image')->store('categories', 'public');
-        } elseif ($request->filled('remove_image') && $request->remove_image == '1') {
-            if ($category->image) {
+        } elseif ($request->boolean('remove_image') || $request->input('remove_image') === '1' || $request->input('remove_image') === 1) {
+            if ($category->image && Storage::disk('public')->exists($category->image)) {
                 Storage::disk('public')->delete($category->image);
             }
             $validated['image'] = null;
+        } else {
+            unset($validated['image']);
         }
 
         unset($validated['remove_image']);

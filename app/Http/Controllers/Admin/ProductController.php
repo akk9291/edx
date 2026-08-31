@@ -408,9 +408,9 @@ class ProductController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'is_new_arrival' => 'boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'gallery_images' => 'nullable|array',
-            'gallery_images.*' => 'image|max:2048',
+            'gallery_images.*' => 'mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:51200',
             'sort_order' => 'nullable|integer|min:0',
             'price' => 'nullable|numeric|min:0',
@@ -462,7 +462,7 @@ class ProductController extends Controller
                 Storage::disk('public')->delete($product->image);
             }
             $validated['image'] = $request->file('image')->store('products', 'public');
-        } elseif ($request->filled('remove_image') && $request->remove_image == '1') {
+        } elseif ($request->boolean('remove_image') || $request->input('remove_image') === '1' || $request->input('remove_image') === 1) {
             if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
             }
