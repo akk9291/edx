@@ -222,6 +222,43 @@ class PillowBlock extends Model
         return $url !== '' ? $url : $fallback;
     }
 
+    /**
+     * Check if a stored path or remote image actually exists on disk / remote.
+     */
+    public static function storedFileExists(?string $path): bool
+    {
+        if ($path === null || ! is_string($path)) {
+            return false;
+        }
+        $path = trim($path);
+        if ($path === '') {
+            return false;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '//')) {
+            return self::pathLooksLikeRemoteImageUrl($path);
+        }
+
+        $clean = ltrim($path, '/');
+        if (str_starts_with($clean, 'storage/')) {
+            $clean = substr($clean, 8);
+        }
+
+        if (str_starts_with($clean, 'assets/')) {
+            return file_exists(public_path($clean));
+        }
+
+        if (file_exists(storage_path('app/public/'.$clean))) {
+            return true;
+        }
+
+        if (file_exists(public_path('storage/'.$clean)) || file_exists(public_path($clean))) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function resolveMainImagePath(): ?string
     {
         $candidates = [];
@@ -246,16 +283,16 @@ class PillowBlock extends Model
             }
         }
 
-        // Priority 1: Product's own image (main or gallery)
+        // Priority 1: Product's own image (main or gallery) - only if file exists
         foreach ($candidates as $candidate) {
-            if (self::isAcceptableImageSource($candidate)) {
+            if (self::isAcceptableImageSource($candidate) && self::storedFileExists($candidate)) {
                 return $candidate;
             }
         }
 
-        // Priority 2: Category image
+        // Priority 2: Category image - only if category image exists
         $categoryImage = $this->category?->image;
-        if (is_string($categoryImage) && trim($categoryImage) !== '' && self::isAcceptableImageSource($categoryImage)) {
+        if (is_string($categoryImage) && trim($categoryImage) !== '' && self::isAcceptableImageSource($categoryImage) && self::storedFileExists($categoryImage)) {
             return trim($categoryImage);
         }
 

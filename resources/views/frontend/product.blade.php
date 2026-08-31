@@ -476,16 +476,16 @@
             <div class="list-img w-full md:w-5/12 md:pr-8 lg:pr-10 flex-shrink-0">
                 @php
                     $allGalleryImages = [];
-                    // 1. Product's own primary image
-                    if (!empty($product->image) && \App\Models\Product::isAcceptableImageSource($product->image)) {
+                    // 1. Product's own primary image (only if file actually exists)
+                    if (!empty($product->image) && \App\Models\Product::isAcceptableImageSource($product->image) && \App\Models\Product::storedFileExists($product->image)) {
                         $allGalleryImages[] = \App\Models\Product::publicUrlForPath($product->image);
                     }
-                    // 2. Gallery images
+                    // 2. Gallery images (only if file actually exists)
                     if ($product instanceof \App\Models\PillowBlock) {
                         if ($product->relationLoaded('galleryImages') || method_exists($product, 'galleryImages')) {
                             foreach ($product->galleryImages ?? [] as $gItem) {
                                 $gPath = is_object($gItem) ? $gItem->image_path : $gItem;
-                                if (\App\Models\PillowBlock::isAcceptableImageSource($gPath)) {
+                                if (\App\Models\PillowBlock::isAcceptableImageSource($gPath) && \App\Models\PillowBlock::storedFileExists($gPath)) {
                                     $allGalleryImages[] = \App\Models\PillowBlock::publicUrlForPath($gPath);
                                 }
                             }
@@ -493,7 +493,7 @@
                     } else {
                         if (is_array($product->images)) {
                             foreach ($product->images as $gPath) {
-                                if (\App\Models\Product::isAcceptableImageSource($gPath)) {
+                                if (\App\Models\Product::isAcceptableImageSource($gPath) && \App\Models\Product::storedFileExists($gPath)) {
                                     $allGalleryImages[] = \App\Models\Product::publicUrlForPath($gPath);
                                 }
                             }
