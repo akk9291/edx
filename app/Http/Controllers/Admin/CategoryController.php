@@ -104,6 +104,10 @@ class CategoryController extends Controller
         }
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $catDir = storage_path('app/public/categories');
+            if (! is_dir($catDir)) {
+                @mkdir($catDir, 0777, true);
+            }
             $validated['image'] = $request->file('image')->store('categories', 'public');
         } else {
             unset($validated['image']);
@@ -208,6 +212,10 @@ class CategoryController extends Controller
 
         // Handle image upload / removal
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $catDir = storage_path('app/public/categories');
+            if (! is_dir($catDir)) {
+                @mkdir($catDir, 0777, true);
+            }
             if ($category->image && Storage::disk('public')->exists($category->image)) {
                 Storage::disk('public')->delete($category->image);
             }

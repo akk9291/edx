@@ -309,6 +309,11 @@ class Product extends Model
             return false;
         }
 
+        // Ghost filename from WordPress CSV import (e.g. edx-NJ2306-ECJ-C3-Cylindrical Roller Bearing.jpg)
+        if (preg_match('/^edx-[^\/]+\.(jpg|jpeg|png|webp)$/i', $path)) {
+            return self::storedFileExists($path);
+        }
+
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '//')) {
             return self::pathLooksLikeRemoteImageUrl($path);
         }
@@ -362,6 +367,8 @@ class Product extends Model
         $clean = ltrim($path, '/');
         if (str_starts_with($clean, 'storage/')) {
             $clean = substr($clean, 8);
+        } elseif (str_starts_with($clean, 'media/')) {
+            $clean = substr($clean, 6);
         }
 
         if (str_starts_with($clean, 'assets/')) {
@@ -415,16 +422,16 @@ class Product extends Model
         }
         $push($specs['bearing_image'] ?? null);
 
-        // Priority 1: Product's own image (main, gallery, or imported specs) - only if file actually exists
+        // Priority 1: Product's own image (main, gallery, or imported specs)
         foreach ($candidates as $candidate) {
-            if (self::isAcceptableImageSource($candidate) && self::storedFileExists($candidate)) {
+            if (self::isAcceptableImageSource($candidate)) {
                 return $candidate;
             }
         }
 
-        // Priority 2: Category image - only if category image actually exists
+        // Priority 2: Category image
         $categoryImage = $this->category?->image;
-        if (is_string($categoryImage) && trim($categoryImage) !== '' && self::isAcceptableImageSource($categoryImage) && self::storedFileExists($categoryImage)) {
+        if (is_string($categoryImage) && trim($categoryImage) !== '' && self::isAcceptableImageSource($categoryImage)) {
             return trim($categoryImage);
         }
 

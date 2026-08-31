@@ -283,16 +283,16 @@ class PillowBlock extends Model
             }
         }
 
-        // Priority 1: Product's own image (main or gallery) - only if file exists
+        // Priority 1: Product's own image (main or gallery)
         foreach ($candidates as $candidate) {
-            if (self::isAcceptableImageSource($candidate) && self::storedFileExists($candidate)) {
+            if (self::isAcceptableImageSource($candidate)) {
                 return $candidate;
             }
         }
 
-        // Priority 2: Category image - only if category image exists
+        // Priority 2: Category image
         $categoryImage = $this->category?->image;
-        if (is_string($categoryImage) && trim($categoryImage) !== '' && self::isAcceptableImageSource($categoryImage) && self::storedFileExists($categoryImage)) {
+        if (is_string($categoryImage) && trim($categoryImage) !== '' && self::isAcceptableImageSource($categoryImage)) {
             return trim($categoryImage);
         }
 
