@@ -1,9 +1,7 @@
-@extends('admin.layout')
+<?php $__env->startSection('title', 'Edit Category'); ?>
+<?php $__env->startSection('page-title', 'Edit Category: ' . $category->name); ?>
 
-@section('title', 'Edit Category')
-@section('page-title', 'Edit Category: ' . $category->name)
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -11,79 +9,136 @@
                 <h5 class="mb-0">Category Information</h5>
             </div>
             <div class="card-body">
-                <form action="{{{ route('admin.categories.update', $category) }}}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
+                <form action="<?php echo e(route('admin.categories.update', $category)); ?>" method="POST" enctype="multipart/form-data">
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('PUT'); ?>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
                             <input type="text" 
-                                   class="form-control @error('name') is-invalid @enderror" 
+                                   class="form-control <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                    id="name" 
                                    name="name" 
-                                   value="{{ old('name', $category->name) }}" 
+                                   value="<?php echo e(old('name', $category->name)); ?>" 
                                    required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label for="parent_id" class="form-label">Parent Category</label>
-                            <select class="form-select @error('parent_id') is-invalid @enderror" 
+                            <select class="form-select <?php $__errorArgs = ['parent_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                     id="parent_id" 
                                     name="parent_id">
                                 <option value="">None (Main Category)</option>
-                                @foreach($parentCategories as $parent)
-                                    <option value="{{ $parent->id }}" 
-                                            {{ old('parent_id', $category->parent_id) == $parent->id ? 'selected' : '' }}>
-                                        {{ $parent->name }}
+                                <?php $__currentLoopData = $parentCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $parent): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($parent->id); ?>" 
+                                            <?php echo e(old('parent_id', $category->parent_id) == $parent->id ? 'selected' : ''); ?>>
+                                        <?php echo e($parent->name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
-                            @error('parent_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['parent_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             <small class="form-text text-muted">Leave empty to make it a main category</small>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" 
+                        <textarea class="form-control <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                   id="description" 
                                   name="description" 
-                                  rows="3">{{ old('description', $category->description) }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                                  rows="3"><?php echo e(old('description', $category->description)); ?></textarea>
+                        <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="mb-3">
                         <label for="image" class="form-label">Category Thumbnail Image</label>
-                        @if($category->image)
+                        <?php if($category->image): ?>
                             <div class="mb-2 position-relative d-inline-block">
-                                <img src="{{ storage_asset($category->image) }}" 
-                                     alt="{{ $category->name }}" 
+                                <img src="<?php echo e(storage_asset($category->image)); ?>" 
+                                     alt="<?php echo e($category->name); ?>" 
                                      id="currentCategoryImage"
-                                     onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'"
+                                     onerror="this.src='<?php echo e(asset('assets/images/PhotoshopExtension_Image-1.webp')); ?>'"
                                      style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 <input type="hidden" name="remove_image" value="0" id="removeImageInput">
                                 <button type="button" class="btn btn-sm btn-outline-danger mt-1" id="removeImageBtn" onclick="toggleRemoveImage('image')">
                                     <i class="bi bi-trash me-1"></i>Remove
                                 </button>
                             </div>
-                        @endif
+                        <?php endif; ?>
                         <input type="file" 
-                               class="form-control @error('image') is-invalid @enderror" 
+                               class="form-control <?php $__errorArgs = ['image'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                id="image" 
                                name="image" 
                                accept="image/*"
                                onchange="previewImage(this, 'imagePreview', 'previewImg')">
-                        @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <?php $__errorArgs = ['image'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         <small class="form-text text-muted">Category thumbnail. Recommended size: 400x400px. Max size: 2MB</small>
                         <div id="imagePreview" class="mt-2" style="display: none;">
                             <img id="previewImg" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -94,14 +149,28 @@
                         <div class="col-md-6 mb-3">
                             <label for="sort_order" class="form-label">Sort Order</label>
                             <input type="number" 
-                                   class="form-control @error('sort_order') is-invalid @enderror" 
+                                   class="form-control <?php $__errorArgs = ['sort_order'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                    id="sort_order" 
                                    name="sort_order" 
-                                   value="{{ old('sort_order', $category->sort_order) }}" 
+                                   value="<?php echo e(old('sort_order', $category->sort_order)); ?>" 
                                    min="0">
-                            @error('sort_order')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['sort_order'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             <small class="form-text text-muted">Lower numbers appear first</small>
                         </div>
 
@@ -113,7 +182,7 @@
                                        id="is_active" 
                                        name="is_active" 
                                        value="1" 
-                                       {{ old('is_active', $category->is_active) ? 'checked' : '' }}>
+                                       <?php echo e(old('is_active', $category->is_active) ? 'checked' : ''); ?>>
                                 <label class="form-check-label" for="is_active">
                                     Active
                                 </label>
@@ -126,13 +195,13 @@
                         <label class="form-label">Category Slug</label>
                         <input type="text" 
                                class="form-control" 
-                               value="{{ $category->slug }}" 
+                               value="<?php echo e($category->slug); ?>" 
                                disabled>
                         <small class="form-text text-muted">Slug is auto-generated from name and cannot be edited directly</small>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
-                        <a href="{{{ route('admin.categories.index') }}}" class="btn btn-secondary">
+                        <a href="<?php echo e(route('admin.categories.index')); ?>" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-2"></i>Cancel
                         </a>
                         <button type="submit" class="btn btn-primary">
@@ -145,7 +214,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     function previewImage(input, previewId, imgId) {
         const preview = document.getElementById(previewId);
@@ -195,9 +264,11 @@
         }
     }
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
 
 
 
 
+
+<?php echo $__env->make('admin.layout', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\laragon\www\edx\resources\views/admin/categories/edit.blade.php ENDPATH**/ ?>

@@ -31,10 +31,10 @@ if (! function_exists('storage_asset')) {
 
         // 3. Path already starting with storage/
         if (str_starts_with($path, 'storage/')) {
-            return asset($path);
+            return Storage::disk('public')->url(substr($path, 8));
         }
 
         // 4. Stored on public storage disk (e.g. products/xyz.jpg)
-        return asset('storage/'.$path);
+        return Storage::disk('public')->url($path);
     }
 }

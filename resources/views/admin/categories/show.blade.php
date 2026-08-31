@@ -16,6 +16,7 @@
                         <img src="{{ storage_asset($category->image) }}" 
                              alt="{{ $category->name }}" 
                              class="img-fluid" 
+                             onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'"
                              style="max-width: 300px; max-height: 300px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                     </div>
                 @endif
