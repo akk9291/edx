@@ -311,6 +311,7 @@ $serveStorage = function (string $path) {
     abort(404);
 };
 Route::get('/storage/{path}', $serveStorage)->where('path', '.*')->name('storage.serve');
+Route::get('/public/storage/{path}', $serveStorage)->where('path', '.*')->name('storage.public.serve');
 Route::get('/media/{path}', $serveStorage)->where('path', '.*')->name('media.serve');
 
 // =====================================================
