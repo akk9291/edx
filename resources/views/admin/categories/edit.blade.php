@@ -150,6 +150,10 @@
     function previewImage(input, previewId, imgId) {
         const preview = document.getElementById(previewId);
         const previewImg = document.getElementById(imgId);
+        const removeInput = document.getElementById('removeImageInput');
+        if (removeInput) {
+            removeInput.value = '0';
+        }
         
         if (input.files && input.files[0]) {
             const reader = new FileReader();

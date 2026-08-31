@@ -200,18 +200,17 @@ class CategoryController extends Controller
             }
         }
 
-        // Handle image removal
-        if ($request->filled('remove_image') && $request->remove_image == '1') {
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
-            }
-            $validated['image'] = null;
-        } elseif ($request->hasFile('image')) {
-            // Delete old image
+        // Handle image upload / removal
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);
             }
             $validated['image'] = $request->file('image')->store('categories', 'public');
+        } elseif ($request->filled('remove_image') && $request->remove_image == '1') {
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+            $validated['image'] = null;
         }
 
         unset($validated['remove_image']);

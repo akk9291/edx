@@ -455,18 +455,18 @@ class ProductController extends Controller
             }
         }
 
-        // Handle remove_image
-        if ($request->filled('remove_image') && $request->remove_image == '1') {
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $validated['image'] = null;
-        } elseif ($request->hasFile('image') && $request->file('image')->isValid()) {
+        // Handle image upload / removal
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
             // Delete old image when uploading new one
             if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
             }
             $validated['image'] = $request->file('image')->store('products', 'public');
+        } elseif ($request->filled('remove_image') && $request->remove_image == '1') {
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validated['image'] = null;
         } else {
             unset($validated['image']);
         }
