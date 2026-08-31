@@ -337,17 +337,9 @@ class Product extends Model
             return $raw;
         }
 
-        $path = ltrim($raw, '/');
+        $url = storage_asset($raw);
 
-        if (str_starts_with($path, 'assets/')) {
-            return asset($path);
-        }
-
-        if (str_starts_with($path, 'storage/')) {
-            return asset($path);
-        }
-
-        return asset('storage/'.$path);
+        return $url !== '' ? $url : $fallback;
     }
 
     /**

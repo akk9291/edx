@@ -59,7 +59,7 @@
                             <a href="{{ route('frontend.product', $product->slug) }}" class="flex sm:items-center gap-7 max-lg:gap-4 max-lg:flex-wrap lg:w-2/3 lg:flex-shrink-0 max-lg:w-full max-sm:flex-col max-sm:w-1/2 flex-1 min-w-0 no-underline text-inherit">
                                 <div class="product-thumb bg-white relative overflow-hidden rounded-2xl block max-sm:w-1/2">
                                     <div class="product-img w-full rounded-2xl overflow-hidden">
-                                        <img class="w-full duration-700" src="{{ $product->image_url }}" alt="{{ $product->name }}" style="width: 200px;">
+                                        <img class="w-full duration-700" src="{{ $product->image_url }}" alt="{{ $product->name }}" onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'" style="width: 200px;">
                                     </div>
                                 </div>
                                 <div class="product-infor max-sm:w-full">

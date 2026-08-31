@@ -508,7 +508,7 @@
                     }
                 @endphp
 
-                <img id="edx-main-product-img" class="object-contain object-center duration-700 w-full" src="{{ $allGalleryImages[0] }}" alt="{{ $product->name }}">
+                <img id="edx-main-product-img" class="object-contain object-center duration-700 w-full" src="{{ $allGalleryImages[0] }}" alt="{{ $product->name }}" onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'">
 
                 @if(count($allGalleryImages) > 1)
                     <div class="gallery-thumbs-row flex items-center gap-3 mt-4 flex-wrap">
@@ -518,7 +518,7 @@
                                     style="width: 72px; height: 72px;"
                                     onclick="edxSwitchProductImage('{{ $thumbUrl }}', this)"
                                     aria-label="Product thumbnail {{ $idx + 1 }}">
-                                <img src="{{ $thumbUrl }}" alt="{{ $product->name }}" class="w-full h-full object-contain">
+                                <img src="{{ $thumbUrl }}" alt="{{ $product->name }}" class="w-full h-full object-contain" onerror="this.src='{{ asset('assets/images/PhotoshopExtension_Image-1.webp') }}'">
                             </button>
                         @endforeach
                     </div>
