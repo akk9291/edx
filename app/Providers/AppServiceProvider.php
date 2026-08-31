@@ -93,7 +93,14 @@ class AppServiceProvider extends ServiceProvider
         $target = storage_path('app/public');
 
         if (! is_dir($target)) {
-            @mkdir($target, 0755, true);
+            @mkdir($target, 0775, true);
+        }
+
+        foreach (['categories', 'products', 'pillow-blocks', 'hero-banners', 'main-categories'] as $dir) {
+            $sub = $target.'/'.$dir;
+            if (! is_dir($sub)) {
+                @mkdir($sub, 0775, true);
+            }
         }
 
         if (! file_exists($publicStorage) && is_dir($target)) {
