@@ -128,4 +128,16 @@ class Category extends Model
 
         return implode(' > ', $path);
     }
+
+    /**
+     * Get the public URL for category image.
+     */
+    public function getImageUrlAttribute(): string
+    {
+        if (empty($this->image)) {
+            return asset('assets/images/PhotoshopExtension_Image-1.webp');
+        }
+
+        return storage_asset($this->image);
+    }
 }
