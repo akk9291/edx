@@ -285,27 +285,42 @@ Route::prefix('quota-list')->name('frontend.quota-list.')->group(function () {
 $serveStorage = function (string $path) {
     $path = ltrim(preg_replace('#\.\./#', '', $path), '/');
 
+    // Strip leading 'storage/' or 'media/' if repeated
+    if (str_starts_with($path, 'storage/')) {
+        $path = substr($path, 8);
+    } elseif (str_starts_with($path, 'media/')) {
+        $path = substr($path, 6);
+    }
+
     // 1. storage/app/public/ path
     $diskPath = storage_path('app/public/'.$path);
     if (file_exists($diskPath) && is_file($diskPath)) {
-        return response()->file($diskPath);
+        return response()->file($diskPath, [
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
     }
 
     // 2. public/storage/ path
     $publicStoragePath = public_path('storage/'.$path);
     if (file_exists($publicStoragePath) && is_file($publicStoragePath)) {
-        return response()->file($publicStoragePath);
+        return response()->file($publicStoragePath, [
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
     }
 
     // 3. Storage public disk
     if (Storage::disk('public')->exists($path)) {
-        return response()->file(Storage::disk('public')->path($path));
+        return response()->file(Storage::disk('public')->path($path), [
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
     }
 
     // 4. Default fallback image
     $fallback = public_path('assets/images/PhotoshopExtension_Image-1.webp');
     if (file_exists($fallback)) {
-        return response()->file($fallback);
+        return response()->file($fallback, [
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 
     abort(404);
