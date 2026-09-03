@@ -56,6 +56,7 @@ class BearingCatalogExportService
         'meta_keywords',
         'mrp',
         'sale_price',
+        'additional_specifications',
     ];
 
     /**
@@ -97,6 +98,19 @@ class BearingCatalogExportService
                 }
             }
         }
+
+        $extraSpecs = [];
+        $reservedKeys = array_flip(array_merge(
+            Product::bearingStructuredSpecKeys(),
+            ['suffix', 'suffix_name', 'suffix_desc', 'suffix_type', 'suffix_pairs', 'bearing_image', 'bearing_category', 'equiv_skf', 'equiv_fag', 'equiv_ntn', 'equiv_timken', 'weight', 'dynamic_load_rating', 'static_load_rating', 'radial_clearance', 'tolerance_class']
+        ));
+        foreach ($specs as $k => $v) {
+            if (isset($reservedKeys[$k]) || ! is_scalar($v) || trim((string) $v) === '') {
+                continue;
+            }
+            $extraSpecs[] = trim($k).': '.trim((string) $v);
+        }
+        $additionalSpecsStr = implode(' | ', $extraSpecs);
 
         $shortDesc = trim(strip_tags((string) ($product->short_description ?? '')));
 
@@ -142,6 +156,7 @@ class BearingCatalogExportService
             'meta_keywords' => (string) ($product->meta_keywords ?? ''),
             'mrp' => $product->price !== null ? (string) $product->price : '',
             'sale_price' => $product->sale_price !== null ? (string) $product->sale_price : '',
+            'additional_specifications' => $additionalSpecsStr,
         ];
     }
 

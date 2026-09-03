@@ -22,7 +22,7 @@ class ProductController extends Controller
      */
     public function bearingImportSample(): StreamedResponse
     {
-        $header = 'ID,Title,Content,Excerpt,Post Type,Image URL,Image Title,Image Caption,Image Description,Image Alt Text,Image Featured,Attachment URL,Bearing Category,bearing_no,bore_diameter,outside_diameter,width,basic_dynamic_load_rating,basic_static_load_rating,limiting_speed_grease,limiting_speed_oil,number_of_rows,radial_internal_clearance,tolerance_class_for_dimensions,cage,bore_type,skf,fag,ntn,timken,suffix_name,suffix_desc,suffix,suffix_type,bearing_image,bearing_category,meta_title,meta_description,meta_keywords,mrp,sale_price';
+        $header = 'ID,Title,Content,Excerpt,Post Type,Image URL,Image Title,Image Caption,Image Description,Image Alt Text,Image Featured,Attachment URL,Bearing Category,bearing_no,bore_diameter,outside_diameter,width,basic_dynamic_load_rating,basic_static_load_rating,limiting_speed_grease,limiting_speed_oil,number_of_rows,radial_internal_clearance,tolerance_class_for_dimensions,cage,bore_type,skf,fag,ntn,timken,suffix_name,suffix_desc,suffix,suffix_type,bearing_image,bearing_category,meta_title,meta_description,meta_keywords,mrp,sale_price,additional_specifications';
 
         return response()->streamDownload(function () use ($header) {
             $out = fopen('php://output', 'w');
@@ -77,6 +77,7 @@ class ProductController extends Controller
                     'meta_keywords' => 'bearing,6000,deep groove,DGBB,EDX',
                     'mrp' => '500.00',
                     'sale_price' => '449.99',
+                    'additional_specifications' => 'material: Chrome Steel | hardness: 60 HRC',
                 ],
                 [
                     'ID' => '2',
@@ -120,6 +121,7 @@ class ProductController extends Controller
                     'meta_keywords' => 'bearing,7204,angular contact,ACBB,EDX',
                     'mrp' => '1200.00',
                     'sale_price' => '1099.00',
+                    'additional_specifications' => 'material: Chrome Steel | contact_angle: 40 deg',
                 ],
             ];
 

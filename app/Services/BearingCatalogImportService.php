@@ -529,6 +529,79 @@ class BearingCatalogImportService
             $specs[(string) $k] = $v;
         }
 
+        // Parse additional_specifications / additional_details column
+        $extraSpecsRaw = trim($this->pick($row, [
+            'additional_specifications',
+            'additional_specs',
+            'additional_details',
+            'extra_specifications',
+            'extra_specs',
+            'specifications',
+        ]));
+
+        if ($extraSpecsRaw !== '') {
+            // Check if JSON format
+            if (str_starts_with($extraSpecsRaw, '{') && str_ends_with($extraSpecsRaw, '}')) {
+                $decoded = json_decode($extraSpecsRaw, true);
+                if (is_array($decoded)) {
+                    foreach ($decoded as $k => $v) {
+                        if (is_scalar($v) && trim((string) $v) !== '' && ! isset($specs[(string) $k])) {
+                            $specs[trim((string) $k)] = trim((string) $v);
+                        }
+                    }
+                }
+            } else {
+                // Key-value pairs delimited by |, newline, or semicolon
+                $pairs = preg_split('/[\|\n\r;]+/', $extraSpecsRaw);
+                if (is_array($pairs)) {
+                    foreach ($pairs as $pair) {
+                        $pair = trim((string) $pair);
+                        if ($pair === '') {
+                            continue;
+                        }
+                        if (str_contains($pair, ':')) {
+                            [$k, $v] = explode(':', $pair, 2);
+                        } elseif (str_contains($pair, '=')) {
+                            [$k, $v] = explode('=', $pair, 2);
+                        } else {
+                            continue;
+                        }
+                        $k = trim($k);
+                        $v = trim($v);
+                        if ($k !== '' && $v !== '' && ! isset($specs[$k])) {
+                            $specs[$k] = $v;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Also capture any custom columns from the CSV/Excel sheet as additional specifications
+        $standardColumns = array_flip([
+            'id', 'title', 'content', 'excerpt', 'post type', 'image url', 'image title', 'image caption',
+            'image description', 'image alt text', 'image featured', 'attachment url', 'bearing category',
+            'bearing_no', 'bore_diameter', 'outside_diameter', 'width', 'basic_dynamic_load_rating',
+            'basic_static_load_rating', 'limiting_speed_grease', 'limiting_speed_oil', 'limiting_speed',
+            'number_of_rows', 'radial_internal_clearance', 'tolerance_class_for_dimensions', 'cage',
+            'bore_type', 'product_net_weight', 'skf', 'fag', 'ntn', 'timken', 'suffix_name', 'suffix_desc',
+            'suffix', 'suffix_type', 'bearing_image', 'bearing_category', 'meta_title', 'meta_description',
+            'meta_keywords', 'mrp', 'sale_price', 'price', 'in_stock', 'stock_quantity', 'is_active',
+            'is_featured', 'is_new_arrival', 'sort_order', 'additional_specifications', 'additional_specs',
+            'additional_details', 'extra_specifications', 'extra_specs', 'specifications',
+        ]);
+
+        foreach ($row as $k => $v) {
+            $colName = trim((string) $k);
+            $val = trim((string) $v);
+            if ($val === '' || $colName === '') {
+                continue;
+            }
+            $colLower = strtolower($colName);
+            if (! isset($standardColumns[$colLower]) && ! str_starts_with($colLower, 'suffix_') && ! isset($specs[$colName])) {
+                $specs[$colName] = $val;
+            }
+        }
+
         return $specs;
     }
 
