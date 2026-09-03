@@ -503,11 +503,15 @@ class BearingCatalogImportService
         $set('cage', $this->pick($row, ['cage']));
         $set('bore_type', $this->pick($row, ['bore_type']));
 
-        $weight = $this->pick($row, ['product_net_weight']);
-        if ($weight !== '' && is_numeric(str_replace(',', '.', $weight))) {
-            $set('weight', $weight.' kg');
-        } elseif ($weight !== '') {
-            $set('weight', $weight);
+        $weight = $this->pick($row, ['product_net_weight', 'weight']);
+        if ($weight !== '') {
+            $wClean = trim(preg_replace('/kg/i', '', $weight));
+            $wClean = str_replace([' ', ','], ['', '.'], $wClean);
+            if (is_numeric($wClean)) {
+                $set('weight', round((float) $wClean, 2).' kg');
+            } else {
+                $set('weight', $weight);
+            }
         }
 
         foreach (['skf' => 'equiv_skf', 'fag' => 'equiv_fag', 'ntn' => 'equiv_ntn', 'timken' => 'equiv_timken'] as $col => $key) {
@@ -546,7 +550,12 @@ class BearingCatalogImportService
                 if (is_array($decoded)) {
                     foreach ($decoded as $k => $v) {
                         if (is_scalar($v) && trim((string) $v) !== '' && ! isset($specs[(string) $k])) {
-                            $specs[trim((string) $k)] = trim((string) $v);
+                            $valStr = trim((string) $v);
+                            $nClean = str_replace([' ', ','], ['', '.'], $valStr);
+                            if (is_numeric($nClean) && str_contains($valStr, '.')) {
+                                $valStr = (string) round((float) $nClean, 2);
+                            }
+                            $specs[trim((string) $k)] = $valStr;
                         }
                     }
                 }
@@ -569,6 +578,10 @@ class BearingCatalogImportService
                         $k = trim($k);
                         $v = trim($v);
                         if ($k !== '' && $v !== '' && ! isset($specs[$k])) {
+                            $nClean = str_replace([' ', ','], ['', '.'], $v);
+                            if (is_numeric($nClean) && str_contains($v, '.')) {
+                                $v = (string) round((float) $nClean, 2);
+                            }
                             $specs[$k] = $v;
                         }
                     }
@@ -583,7 +596,7 @@ class BearingCatalogImportService
             'bearing_no', 'bore_diameter', 'outside_diameter', 'width', 'basic_dynamic_load_rating',
             'basic_static_load_rating', 'limiting_speed_grease', 'limiting_speed_oil', 'limiting_speed',
             'number_of_rows', 'radial_internal_clearance', 'tolerance_class_for_dimensions', 'cage',
-            'bore_type', 'product_net_weight', 'skf', 'fag', 'ntn', 'timken', 'suffix_name', 'suffix_desc',
+            'bore_type', 'product_net_weight', 'weight', 'skf', 'fag', 'ntn', 'timken', 'suffix_name', 'suffix_desc',
             'suffix', 'suffix_type', 'bearing_image', 'bearing_category', 'meta_title', 'meta_description',
             'meta_keywords', 'mrp', 'sale_price', 'price', 'in_stock', 'stock_quantity', 'is_active',
             'is_featured', 'is_new_arrival', 'sort_order', 'additional_specifications', 'additional_specs',
@@ -598,6 +611,10 @@ class BearingCatalogImportService
             }
             $colLower = strtolower($colName);
             if (! isset($standardColumns[$colLower]) && ! str_starts_with($colLower, 'suffix_') && ! isset($specs[$colName])) {
+                $nClean = str_replace([' ', ','], ['', '.'], $val);
+                if (is_numeric($nClean) && str_contains($val, '.')) {
+                    $val = (string) round((float) $nClean, 2);
+                }
                 $specs[$colName] = $val;
             }
         }
@@ -611,11 +628,11 @@ class BearingCatalogImportService
         if ($v === '') {
             return null;
         }
-        if (stripos($v, 'mm') !== false) {
-            return $v;
-        }
-        if (preg_match('/^[0-9\.\,\s]+$/', $v)) {
-            return $v.' mm';
+        $clean = trim(preg_replace('/mm/i', '', $v));
+        $clean = str_replace([' ', ','], ['', '.'], $clean);
+        if (is_numeric($clean)) {
+            $num = round((float) $clean, 2);
+            return $num.' mm';
         }
 
         return $v;
@@ -627,12 +644,11 @@ class BearingCatalogImportService
         if ($v === '') {
             return null;
         }
-        if (preg_match('/kn/i', $v)) {
-            return $v;
-        }
-        $n = str_replace([' ', ','], ['', '.'], $v);
-        if (is_numeric($n)) {
-            return $v.' KN';
+        $clean = trim(preg_replace('/kn/i', '', $v));
+        $clean = str_replace([' ', ','], ['', '.'], $clean);
+        if (is_numeric($clean)) {
+            $num = round((float) $clean, 2);
+            return $num.' KN';
         }
 
         return $v;
@@ -644,11 +660,11 @@ class BearingCatalogImportService
         if ($v === '') {
             return null;
         }
-        if (stripos($v, 'r/min') !== false || stripos($v, 'rpm') !== false) {
-            return $v;
-        }
-        if (preg_match('/^[0-9\.\,\s]+$/', $v)) {
-            return $v.' r/min';
+        $clean = trim(preg_replace('/(r\/min|rpm)/i', '', $v));
+        $clean = str_replace([' ', ','], ['', '.'], $clean);
+        if (is_numeric($clean)) {
+            $num = round((float) $clean, 2);
+            return $num.' r/min';
         }
 
         return $v;
