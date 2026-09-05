@@ -47,24 +47,89 @@ class ProductPdfController extends Controller
 
     protected function resolveProductImageFileUri($product): string
     {
-        $path = $product->getRawOriginal('image') ?? '';
-        $path = is_string($path) ? ltrim($path, '/') : '';
+        // 1. Gather potential image candidates in priority order:
+        //    a) Product's own resolved image
+        //    b) Product raw image
+        //    c) Category image
+        $candidates = [];
 
-        if ($path !== '' && str_starts_with($path, 'assets/') && is_file(public_path($path))) {
-            return $this->fileUri(public_path($path));
+        if (method_exists($product, 'resolveMainImagePath')) {
+            $candidates[] = $product->resolveMainImagePath();
         }
 
-        if ($path !== '' && Storage::disk('public')->exists($path)) {
-            return $this->fileUri(storage_path('app/public/'.$path));
+        $candidates[] = $product->getRawOriginal('image');
+
+        if (isset($product->category) && ! empty($product->category->image)) {
+            $candidates[] = $product->category->image;
         }
 
-        if ($path !== '' && is_file(public_path($path))) {
-            return $this->fileUri(public_path($path));
+        foreach ($candidates as $candidate) {
+            if (! is_string($candidate) || trim($candidate) === '') {
+                continue;
+            }
+            $uri = $this->resolveDiskFileUri(trim($candidate));
+            if ($uri !== '') {
+                return $uri;
+            }
         }
 
+        // Final fallback: default image
         $fallback = public_path('assets/images/PhotoshopExtension_Image-1.webp');
+        if (is_file($fallback)) {
+            return $this->fileUri($fallback);
+        }
 
-        return is_file($fallback) ? $this->fileUri($fallback) : '';
+        return '';
+    }
+
+    protected function resolveDiskFileUri(string $path): string
+    {
+        $path = ltrim(trim($path), '/');
+        if ($path === '' || str_contains($path, 'PhotoshopExtension_Image-1.webp')) {
+            return '';
+        }
+
+        // If ghost export filename that doesn't exist on disk, skip
+        if (preg_match('/^edx-[^\/]+\.(jpg|jpeg|png|webp)$/i', $path)) {
+            $disk = storage_path('app/public/'.$path);
+            if (! is_file($disk)) {
+                return '';
+            }
+        }
+
+        // Strip leading storage/ or media/
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8);
+        } elseif (str_starts_with($path, 'media/')) {
+            $path = substr($path, 6);
+        }
+
+        // 1. Check storage/app/public/
+        $storagePath = storage_path('app/public/'.$path);
+        if (is_file($storagePath)) {
+            return $this->fileUri($storagePath);
+        }
+
+        // 2. Check public/storage/
+        $pubStoragePath = public_path('storage/'.$path);
+        if (is_file($pubStoragePath)) {
+            return $this->fileUri($pubStoragePath);
+        }
+
+        // 3. Check public_path() (e.g. assets/...)
+        if (is_file(public_path($path))) {
+            return $this->fileUri(public_path($path));
+        }
+
+        // 4. Check Storage disk public exists
+        if (Storage::disk('public')->exists($path)) {
+            $fullPath = Storage::disk('public')->path($path);
+            if (is_file($fullPath)) {
+                return $this->fileUri($fullPath);
+            }
+        }
+
+        return '';
     }
 
     protected function fileUri(string $absolutePath): string
